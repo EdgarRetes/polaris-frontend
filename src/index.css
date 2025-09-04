@@ -1,68 +1,44 @@
-:root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
+@import "tailwindcss";
+@import "tw-animate-css";
 
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
-
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
-}
+@custom-variant dark (&:is(.dark *));
 
 body {
-  margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
+  font-family: 'Roboto', sans-serif;
+  background-color: #F4F7F8;
 }
 
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
+:root {
+  --sidebar: #FCFCFC; /* SecondaryColors.background_4 */
+  --sidebar-foreground: #323E48; /* SecondaryColors.dark_gray */
+  --sidebar-primary: #EB0029; /* PrimaryColors.red */
+  --sidebar-primary-foreground: #FCFCFC; /* texto sobre primary */
+  --sidebar-accent: #F4F7F8; /* SecondaryColors.background_2 */
+  --sidebar-accent-foreground: #323E48; /* SecondaryColors.dark_gray */
+  --sidebar-border: #CFD2D3; /* SecondaryColors.content_5 */
+  --sidebar-ring: #EB0029; /* PrimaryColors.red */
 }
 
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
-  cursor: pointer;
-  transition: border-color 0.25s;
-}
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
+.dark {
+  --sidebar: #323E48; /* dark_gray */
+  --sidebar-foreground: #F4F7F8; /* background_2 */
+  --sidebar-primary: #EB0029;
+  --sidebar-primary-foreground: #FCFCFC;
+  --sidebar-accent: #323E48; /* dark_gray */
+  --sidebar-accent-foreground: #F4F7F8;
+  --sidebar-border: #7B868C; /* content_2 */
+  --sidebar-ring: #EB0029;
 }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
-  }
+@theme inline {
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
 }
+
