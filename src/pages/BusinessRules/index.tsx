@@ -14,7 +14,7 @@ const initialData: BusinessRule[] = [
 export default function BusinessRules() {
   const { data, isFormOpen, openForm, closeForm, addRule } =
     useBusinessRules(initialData);
-    // prueba pr
+    // prueba pr2
 
   return (
     <div
