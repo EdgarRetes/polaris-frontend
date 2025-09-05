@@ -125,7 +125,7 @@ export function BusinessRulesDataTable<TData, TValue>({
         </DropdownMenu>
         <div
           className="rounded-lg align-right ml-auto"
-          style={{ background: AdditionalColors.links }}
+          style={{ background: PrimaryColors.red }}
         >
           <Button
             className="font-bold"

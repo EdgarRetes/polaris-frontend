@@ -85,7 +85,7 @@ export const BusinessRuleForm: React.FC<BusinessRuleFormProps> = ({
         <Button onClick={onCancel} className="font-semibold"style={{ background: SecondaryColors.content_4 }}>
           Cancelar
         </Button>
-        <Button onClick={handleSubmit} className="font-semibold" style={{ background: AdditionalColors.links, color: SecondaryColors.background_3 }}>
+        <Button onClick={handleSubmit} className="font-semibold" style={{ background: PrimaryColors.red, color: SecondaryColors.background_3 }}>
           Crear
         </Button>
       </div>

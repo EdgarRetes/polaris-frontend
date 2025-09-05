@@ -62,7 +62,7 @@ export function AppSidebar() {
           <SidebarMenu>
             {items.map((item) => (
               <SidebarMenuItem key={item.title}>
-                <SidebarMenuButton asChild size="xl">
+                <SidebarMenuButton asChild size="lg">
                   <a href={item.url}>
                     <item.icon />
                     <span>{item.title}</span>

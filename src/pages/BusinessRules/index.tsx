@@ -1,6 +1,6 @@
-import { BusinessRulesDataTable } from "./components/BusinessRulesDataTable";
-import { BusinessRuleForm } from "./components/BusinessRuleForm";
-import { columns } from "./components/BusinessRulesColumns";
+import { BusinessRulesDataTable } from "./components/DataTable";
+import { BusinessRuleForm } from "./components/Form";
+import { columns } from "./components/Columns";
 import { useBusinessRules } from "./hooks/useBusinessRules";
 import BusinessRule from "./types/BusinessRuleDto";
 import { Button } from "@/components/ui/button";
@@ -14,7 +14,7 @@ const initialData: BusinessRule[] = [
 export default function BusinessRules() {
   const { data, isFormOpen, openForm, closeForm, addRule } =
     useBusinessRules(initialData);
-  console.log(isFormOpen);
+    // prueba pr
 
   return (
     <div
