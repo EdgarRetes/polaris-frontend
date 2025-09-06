@@ -1,17 +1,40 @@
-import { ColumnDef } from "@tanstack/react-table"
-import BusinessRule from "../types/BusinessRuleDto"
+import { ColumnDef } from "@tanstack/react-table";
+import BusinessRule from "../types/BusinessRuleDto";
+import { Checkbox } from "@/components/ui/checkbox";
 
 export const columns: ColumnDef<BusinessRule>[] = [
-    {
-        accessorKey: "name",
-        header: "Nombre",
-    },
-    {
-        accessorKey: "company",
-        header: "Empresa",
-    },
-    {
-      accessorKey: "status",
-      header: "Status",
-    },
-]
+  {
+    id: "select",
+    header: ({ table }) => (
+      <Checkbox
+        checked={
+          table.getIsAllPageRowsSelected() ||
+          (table.getIsSomePageRowsSelected() && "indeterminate")
+        }
+        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+        aria-label="Select all"
+      />
+    ),
+    cell: ({ row }) => (
+      <Checkbox
+        checked={row.getIsSelected()}
+        onCheckedChange={(value) => row.toggleSelected(!!value)}
+        aria-label="Select row"
+      />
+    ),
+    // enableSorting: false,
+    // enableHiding: false,
+  },
+  {
+    accessorKey: "name",
+    header: "Nombre",
+  },
+  {
+    accessorKey: "company",
+    header: "Empresa",
+  },
+  {
+    accessorKey: "status",
+    header: "Status",
+  },
+];
