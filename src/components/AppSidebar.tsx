@@ -18,7 +18,7 @@ const items = [
   },
   {
     title: "Archivos",
-    url: "#",
+    url: "/native-files",
     icon: FileText,
   },
   {

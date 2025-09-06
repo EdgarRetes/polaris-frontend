@@ -6,15 +6,10 @@ import BusinessRule from "./types/BusinessRuleDto";
 import { Button } from "@/components/ui/button";
 import { SecondaryColors } from "@/helpers/colors";
 
-const initialData: BusinessRule[] = [
-  { id: 1, name: "Mappeo PEMEX", status: "Activa", company: "Pemex" },
-  { id: 2, name: "Mappeo OXXO", status: "Borrador", company: "Oxxo" },
-];
 
 export default function BusinessRules() {
-  const { data, isFormOpen, openForm, closeForm, addRule } =
-    useBusinessRules(initialData);
-    // prueba pr
+  const { data, isFormOpen, openForm, closeForm } =
+    useBusinessRules();
 
   return (
     <div
@@ -29,7 +24,7 @@ export default function BusinessRules() {
       </div>
 
       {isFormOpen ? (
-        <BusinessRuleForm onSubmit={addRule} onCancel={closeForm} />
+        <BusinessRuleForm onSubmit={openForm} onCancel={closeForm} />
       ) : (
         <>
           <BusinessRulesDataTable
