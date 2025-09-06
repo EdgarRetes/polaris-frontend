@@ -32,13 +32,13 @@ import {
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
-//   onOpenForm: () => void;
+  onOpenForm: () => void;
 }
 
 export function NativeFilesDataTable<TData, TValue>({
   columns,
   data,
-//   onOpenForm,
+  onOpenForm,
 }: DataTableProps<TData, TValue>) {
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
@@ -74,7 +74,7 @@ export function NativeFilesDataTable<TData, TValue>({
         >
           <Button
             className="font-bold"
-            // onClick={onOpenForm}
+            onClick={onOpenForm}
             style={{ color: SecondaryColors.background_3 }}
           >
             Procesar archivo

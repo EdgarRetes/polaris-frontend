@@ -18,7 +18,7 @@ export function useBusinessRules(initialData: BusinessRule[] = []) {
       }
     };
     fetchRules();
-  }, []);
+  }, [isFormOpen]);
 
   const closeForm = () => {
     setIsFormOpen(false);

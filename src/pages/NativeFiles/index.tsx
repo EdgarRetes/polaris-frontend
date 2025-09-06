@@ -1,4 +1,5 @@
 import { NativeFilesDataTable } from "./components/DataTable";
+import { NativeFilesForm } from "./components/NativeFilesForm";
 import { columns } from "./components/Columns";
 import { useNativeFiles } from "./hooks/useNativeFiles";
 import { SecondaryColors } from "@/helpers/colors";
@@ -16,11 +17,17 @@ export default function NativeFiles() {
       >
         Archivos
       </div>
-      <NativeFilesDataTable
-        columns={columns}
-        data={data}
-        // onOpenForm={openForm}
-      />
+      {isFormOpen ? (
+        <NativeFilesForm onSubmit={openForm} onCancel={closeForm} />
+      ) : (
+        <>
+          <NativeFilesDataTable
+            columns={columns}
+            data={data}
+            onOpenForm={openForm}
+          />
+        </>
+      )}
     </div>
   );
 }
