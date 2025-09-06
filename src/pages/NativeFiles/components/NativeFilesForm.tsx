@@ -1,10 +1,10 @@
 import React, { useState } from "react";
-import BusinessRule from "../types/BusinessRuleDto";
+import NativeFile from "../types/NativeFileDto";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
-import { useBusinessRules } from "../hooks/useBusinessRules";
+import { useNativeFiles } from "../hooks/useNativeFiles";
 
 import {
   DropdownMenu,
@@ -16,60 +16,60 @@ import {
 import { ChevronDown } from "lucide-react";
 import { PrimaryColors, SecondaryColors } from "@/helpers/colors";
 
-import { PaymentMapping } from "../services/openAiService";
+// import { PaymentMapping } from "../services/openAiService";
 
-interface BusinessRuleFormProps {
-  onSubmit: (rule: BusinessRule) => void;
+interface NativeFileFormProps {
+  onSubmit: (rule: NativeFile) => void;
   onCancel: () => void;
 }
 
-export const BusinessRuleForm: React.FC<BusinessRuleFormProps> = ({
+export const NativeFilesForm: React.FC<NativeFileFormProps> = ({
   onSubmit,
   onCancel,
 }) => {
   const [name, setName] = useState("");
   const [company, setCompany] = useState("");
-  const [status, setStatus] = useState<BusinessRule["status"]>("Activa");
+//   const [status, setStatus] = useState<NativeFile["status"]>("Activa");
 
   const [inputMode, setInputMode] = useState<"text" | "file">("text");
   const [prompt, setPrompt] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const { addBusinessRule, getAIJsonFromFile } = useBusinessRules([]);
+//   const { addNativeFile, getAIJsonFromFile } = useNativeFiles([]);
 
   const handleSubmit = async () => {
     if (!name.trim() || !company.trim()) return;
     setLoading(true);
     try {
-      let definition: PaymentMapping[] | string | null = null;
+    //   let definition: PaymentMapping[] | string | null = null;
 
-      if (inputMode === "file" && file) {
-        const aiResponse = await getAIJsonFromFile(file);
-        if (!aiResponse) {
-          console.error("No se pudo obtener información del archivo.");
-          return;
-        }
-        definition = aiResponse;
-      }
+    //   if (inputMode === "file" && file) {
+    //     const aiResponse = await getAIJsonFromFile(file);
+    //     if (!aiResponse) {
+    //       console.error("No se pudo obtener información del archivo.");
+    //       return;
+    //     }
+    //     definition = aiResponse;
+    //   }
       // else if (inputMode === "text") {
       //   definition = prompt;
       // }
 
-      const newRule: Partial<BusinessRule> = {
-        name,
-        company,
-        status,
-        definition: definition ?? [],
-      };
+    //   const newRule: Partial<NativeFile> = {
+    //     name,
+    //     company,
+    //     status,
+    //     definition: definition ?? [],
+    //   };
 
-      await addBusinessRule(newRule);
+    //   await addNativeFile(newRule);
 
       setName("");
       setCompany("");
       setPrompt("");
       setFile(null);
-      setStatus("Activa");
+    //   setStatus("Activa");
       setInputMode("text");
       onCancel();
     } catch (err) {
@@ -107,7 +107,7 @@ export const BusinessRuleForm: React.FC<BusinessRuleFormProps> = ({
           onChange={(e) => setCompany(e.target.value)}
           style={{ background: SecondaryColors.background_2 }}
         />
-        <DropdownMenu>
+        {/* <DropdownMenu>
           <DropdownMenuTrigger
             className="flex items-center gap-2 rounded-md p-2"
             style={{
@@ -135,7 +135,7 @@ export const BusinessRuleForm: React.FC<BusinessRuleFormProps> = ({
               Borrador
             </DropdownMenuItem>
           </DropdownMenuContent>
-        </DropdownMenu>
+        </DropdownMenu> */}
       </div>
 
       {/* --- Selector de fuente para la IA --- */}
