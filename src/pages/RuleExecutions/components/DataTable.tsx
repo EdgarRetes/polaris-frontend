@@ -35,7 +35,7 @@ interface DataTableProps<TData, TValue> {
   onOpenForm: () => void;
 }
 
-export function NativeFilesDataTable<TData, TValue>({
+export function RuleExecutionDataTable<TData, TValue>({
   columns,
   data,
   onOpenForm,

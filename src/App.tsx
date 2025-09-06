@@ -4,7 +4,7 @@ import MainLayout from "./layouts/MainLayout";
 
 // import Home from "./pages/Home";
 import BusinessRules from "./pages/BusinessRules";
-import NativeFiles from "./pages/NativeFiles";
+import RuleExecutions from "./pages/RuleExecutions";
 // import Companies from "./pages/Companies";
 
 function App() {
@@ -13,7 +13,7 @@ function App() {
       <MainLayout>
         <Routes>
           <Route path="/" element={<BusinessRules />} />
-          <Route path="/native-files" element={<NativeFiles />} />
+          <Route path="/file-executions" element={<RuleExecutions />} />
           <Route path="/business-rules" element={<BusinessRules />} />
           {/* <Route path="/companies" element={<Companies />} /> */}
         </Routes>

@@ -1,11 +1,11 @@
-import { NativeFilesDataTable } from "./components/DataTable";
+import { RuleExecutionDataTable } from "./components/DataTable";
 import { NativeFilesForm } from "./components/NativeFilesForm";
 import { columns } from "./components/Columns";
-import { useNativeFiles } from "./hooks/useNativeFiles";
+import { useRuleExecutions } from "./hooks/useRuleExcecutions";
 import { SecondaryColors } from "@/helpers/colors";
 
-export default function NativeFiles() {
-  const { data, isFormOpen, openForm, closeForm } = useNativeFiles();
+export default function RuleExcutions() {
+  const { data, isFormOpen, openForm, closeForm } = useRuleExecutions();
   return (
     <div
       className="rounded-lg py-1 px-4"
@@ -21,7 +21,7 @@ export default function NativeFiles() {
         <NativeFilesForm onSubmit={openForm} onCancel={closeForm} />
       ) : (
         <>
-          <NativeFilesDataTable
+          <RuleExecutionDataTable
             columns={columns}
             data={data}
             onOpenForm={openForm}

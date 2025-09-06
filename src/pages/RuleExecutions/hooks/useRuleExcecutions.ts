@@ -1,18 +1,19 @@
 import { useState, useEffect } from "react";
 import NativeFile from "../types/NativeFileDto";
-import { createNativeFile, getNativeFiles } from "../services/nativeFilesService";
+import RuleExecution from "../types/RuleExecutionDto";
+import { createRuleExecution, getRuleExecution } from "../services/ruleExecutionsService";
 // import { uploadFileToOpenAI, mapPaymentFileToJSON, PaymentMapping } from "../services/openAiService";
 
-export function useNativeFiles(initialData: NativeFile[] = []) {
-  const [data, setData] = useState<NativeFile[]>(initialData);
+export function useRuleExecutions(initialData: RuleExecution[] = []) {
+  const [data, setData] = useState<RuleExecution[]>(initialData);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const fetchRules = async () => {
       try {
-        const rules = await getNativeFiles();
-        setData(rules);
+        const executions = await getRuleExecution();
+        setData(executions);
       } catch (err) {
         console.error("Error fetching rules:", err);
       }
@@ -40,25 +41,25 @@ export function useNativeFiles(initialData: NativeFile[] = []) {
 //   };
 
 
-  const addNativeFile = async (rule: Partial<NativeFile>) => {
-    setLoading(true);
-    try {
-      const created = await createNativeFile(rule);
-      setData((prev) => [...prev, created]);
-      setIsFormOpen(false);
-    } catch (err) {
-      console.error("Error creating rule:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  // const addNativeFile = async (rule: Partial<NativeFile>) => {
+  //   setLoading(true);
+  //   try {
+  //     const created = await createRuleExecution(rule);
+  //     setData((prev) => [...prev, created]);
+  //     setIsFormOpen(false);
+  //   } catch (err) {
+  //     console.error("Error creating rule:", err);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
 
   return {
     data,
     isFormOpen,
     openForm: () => setIsFormOpen(true),
     closeForm: () => setIsFormOpen(false),
-    addNativeFile,
+    // addNativeFile,
     // getAIJsonFromFile
   };
 }

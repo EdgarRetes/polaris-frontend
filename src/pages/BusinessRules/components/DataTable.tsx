@@ -36,12 +36,11 @@ import {
   SecondaryColors,
   AdditionalColors,
 } from "@/helpers/colors";
-import { useBusinessRules } from "../hooks/useBusinessRules";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
-  onOpenForm: () => void;
+  onOpenForm?: () => void;
 }
 
 export function BusinessRulesDataTable<TData, TValue>({
