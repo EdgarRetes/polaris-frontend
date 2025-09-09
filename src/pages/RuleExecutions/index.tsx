@@ -1,11 +1,37 @@
+import { useState } from "react";
 import { RuleExecutionDataTable } from "./components/DataTable";
 import { NativeFilesForm } from "./components/NativeFilesForm";
+import { NativeFileDetails } from "./components/NativeFileDetails";
 import { columns } from "./components/Columns";
 import { useRuleExecutions } from "./hooks/useRuleExcecutions";
 import { SecondaryColors } from "@/helpers/colors";
+import RuleExecution from "./types/RuleExecutionDto";
+import NativeFile from "./types/NativeFileDto";
 
 export default function RuleExcutions() {
   const { data, isFormOpen, openForm, closeForm } = useRuleExecutions();
+
+  // Estado para el archivo seleccionado
+  const [selectedFile, setSelectedFile] = useState<NativeFile | null>(null);
+
+  const handleRowClick = (fileId: string) => {
+    const execution = data.find((d) => d.fileId.toString() === fileId);
+    if (execution) {
+      const file: NativeFile = {
+        id: execution.fileId,
+        name: `${execution.fileId}`,
+        // company: "N/A"
+        // createdAt: new Date().toISOString(),
+        // status: execution.status || "Pendiente",
+      };
+      setSelectedFile(file);
+    }
+  };
+
+  const handleCloseDetails = () => {
+    setSelectedFile(null);
+  };
+
   return (
     <div
       className="rounded-lg py-1 px-4"
@@ -17,16 +43,18 @@ export default function RuleExcutions() {
       >
         Archivos
       </div>
+
       {isFormOpen ? (
         <NativeFilesForm onSubmit={openForm} onCancel={closeForm} />
+      ) : selectedFile ? (
+        <NativeFileDetails fileId={selectedFile.id} onClose={handleCloseDetails} />
       ) : (
-        <>
-          <RuleExecutionDataTable
-            columns={columns}
-            data={data}
-            onOpenForm={openForm}
-          />
-        </>
+        <RuleExecutionDataTable<RuleExecution, any>
+          columns={columns}
+          data={data}
+          onOpenForm={openForm}
+          onRowClick={handleRowClick}
+        />
       )}
     </div>
   );

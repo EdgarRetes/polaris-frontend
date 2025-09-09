@@ -8,7 +8,7 @@ export const getRuleExecution = async (): Promise<RuleExecution[]> => {
   return response.data;
 };
 
-export const createRuleExecution = async (rule: Partial<RuleExecution>) => {
-  const response = await axios.post(`${API_BASE_URL}/file-executions`, rule);
+export const createRuleExecution = async (execution: Partial<RuleExecution>) => {
+  const response = await axios.post(`${API_BASE_URL}/file-executions`, execution);
   return response.data;
 };
