@@ -6,18 +6,10 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useBusinessRules } from "../../BusinessRules/hooks/useBusinessRules";
 import { BusinessRulesDataTable } from "@/pages/BusinessRules/components/DataTable";
 import { columns } from "../../BusinessRules/components/Columns";
-
 import { useRuleExecutions } from "../hooks/useRuleExcecutions";
 
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-
-import { ChevronDown } from "lucide-react";
 import { PrimaryColors, SecondaryColors } from "@/helpers/colors";
+import { createRuleExecution } from "../services/ruleExecutionsService";
 
 // import { PaymentMapping } from "../services/openAiService";
 
@@ -39,11 +31,35 @@ export const NativeFilesForm: React.FC<NativeFileFormProps> = ({
   const [loading, setLoading] = useState(false);
 
   const { data } = useBusinessRules();
+  const { parseFile, mapRowToDto, getRuleJson, createNewNativeFile, createNewRuleExecution} = useRuleExecutions();
+
+  const [selectedRuleId, setSelectedRuleId] = useState<number | null>(null);
 
   const handleSubmit = async () => {
-    if (!name.trim() || !company.trim()) return;
+    // if (!name.trim() || !company.trim()) return;
     setLoading(true);
     try {
+      if (file) {
+        const parsed = await parseFile(file); // array de filas
+        const mappedData = parsed.map((row) => mapRowToDto(row));
+        if (selectedRuleId !== null) {
+          const ruleJson = await getRuleJson(selectedRuleId);
+          const newFile = await createNewNativeFile(
+            name,
+            'null', // companyId si aplica
+            mappedData,
+            ruleJson,
+            1 // userId actual
+          );
+
+          if (newFile){
+            await createNewRuleExecution(newFile.id, selectedRuleId);
+          }
+        } else {
+          console.warn("No hay regla seleccionada");
+        }
+      }
+
       setName("");
       setCompany("");
       setPrompt("");
@@ -88,7 +104,22 @@ export const NativeFilesForm: React.FC<NativeFileFormProps> = ({
         />
       </div>
 
-      {/* --- Selector de fuente para la IA --- */}
+      <input
+        type="file"
+        accept=".csv, .json, .xlsx, .pdf, .doc, .docx, .xml, .txt"
+        onChange={(e) => setFile(e.target.files?.[0] || null)}
+        className="mt-3"
+      />
+      {file && (
+        <p
+          className="text-sm mt-1"
+          style={{ color: SecondaryColors.dark_gray }}
+        >
+          Archivo seleccionado: {file.name}
+        </p>
+      )}
+
+      {/* --- Selector --- */}
       <Tabs
         value={inputMode}
         onValueChange={(v) => setInputMode(v as "text" | "file")}
@@ -99,25 +130,14 @@ export const NativeFilesForm: React.FC<NativeFileFormProps> = ({
         </TabsList>
 
         <TabsContent value="text">
-          <BusinessRulesDataTable columns={columns} data={data} />
+          <BusinessRulesDataTable
+            columns={columns}
+            data={data}
+            onRowSelect={(id) => setSelectedRuleId(id)}
+          />
         </TabsContent>
 
-        <TabsContent value="file">
-          <input
-            type="file"
-            accept=".csv, .json, .xlsx, .pdf, .doc, .docx, .xml, .txt"
-            onChange={(e) => setFile(e.target.files?.[0] || null)}
-            className="mt-3"
-          />
-          {file && (
-            <p
-              className="text-sm mt-1"
-              style={{ color: SecondaryColors.dark_gray }}
-            >
-              Archivo seleccionado: {file.name}
-            </p>
-          )}
-        </TabsContent>
+        <TabsContent value="file"></TabsContent>
       </Tabs>
 
       {/* --- Acciones --- */}

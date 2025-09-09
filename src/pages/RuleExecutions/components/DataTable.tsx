@@ -18,8 +18,6 @@ import {
 
 import { Button } from "@/components/ui/button";
 
-
-
 import * as React from "react";
 import { Input } from "@/components/ui/input";
 import {
@@ -27,18 +25,24 @@ import {
   SecondaryColors,
   AdditionalColors,
 } from "@/helpers/colors";
-// import { useBusinessRules } from "../hooks/useBusinessRules";
 
-interface DataTableProps<TData, TValue> {
+// Tipado que asegura que cada fila tiene fileId
+interface FileRow {
+  fileId: number;
+}
+
+interface DataTableProps<TData extends FileRow, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
   onOpenForm: () => void;
+  onRowClick?: (fileId: string) => void;
 }
 
-export function RuleExecutionDataTable<TData, TValue>({
+export function RuleExecutionDataTable<TData extends FileRow, TValue>({
   columns,
   data,
   onOpenForm,
+  onRowClick,
 }: DataTableProps<TData, TValue>) {
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
@@ -57,10 +61,10 @@ export function RuleExecutionDataTable<TData, TValue>({
     <div className="overflow-hidden">
       <div className="flex items-center py-4 px-2 gap-x-2">
         <Input
-          placeholder="Nombre..."
-          value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
+          placeholder="Archivo..."
+          value={(table.getColumn("fileId")?.getFilterValue() as string) ?? ""}
           onChange={(event) =>
-            table.getColumn("name")?.setFilterValue(event.target.value)
+            table.getColumn("fileId")?.setFilterValue(event.target.value)
           }
           className="max-w-sm border-0"
           style={{
@@ -94,22 +98,17 @@ export function RuleExecutionDataTable<TData, TValue>({
               key={headerGroup.id}
               style={{ borderColor: SecondaryColors.content_3 }}
             >
-              {headerGroup.headers.map((header) => {
-                return (
-                  <TableHead
-                    key={header.id}
-                    className="font-bold"
-                    style={{ color: SecondaryColors.dark_gray }}
-                  >
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
-                  </TableHead>
-                );
-              })}
+              {headerGroup.headers.map((header) => (
+                <TableHead
+                  key={header.id}
+                  className="font-bold"
+                  style={{ color: SecondaryColors.dark_gray }}
+                >
+                  {header.isPlaceholder
+                    ? null
+                    : flexRender(header.column.columnDef.header, header.getContext())}
+                </TableHead>
+              ))}
             </TableRow>
           ))}
         </TableHeader>
@@ -117,13 +116,15 @@ export function RuleExecutionDataTable<TData, TValue>({
           {table.getRowModel().rows?.length ? (
             table.getRowModel().rows.map((row) => (
               <TableRow
+                key={row.id}
+                data-state={row.getIsSelected() && "selected"}
                 style={{
                   borderColor: SecondaryColors.content_3,
                   backgroundColor: SecondaryColors.background_2,
                   color: SecondaryColors.dark_gray,
+                  cursor: "pointer",
                 }}
-                key={row.id}
-                data-state={row.getIsSelected() && "selected"}
+                onClick={() => onRowClick?.(row.original.fileId.toString())}
               >
                 {row.getVisibleCells().map((cell) => (
                   <TableCell key={cell.id}>
