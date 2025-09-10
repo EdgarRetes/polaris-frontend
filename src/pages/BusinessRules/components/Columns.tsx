@@ -35,6 +35,6 @@ export const columns: ColumnDef<BusinessRule>[] = [
   },
   {
     accessorKey: "status",
-    header: "Status",
+    header: "Estatus",
   },
 ];

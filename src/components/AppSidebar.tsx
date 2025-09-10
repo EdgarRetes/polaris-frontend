@@ -1,4 +1,11 @@
-import { Home, Inbox, Users, FileText, Settings, Building, BookA, LayoutList } from "lucide-react"
+//import { Home, Inbox, Users, FileText, Settings, Building, BookA, LayoutList } from "lucide-react"
+import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined';
+import DescriptionOutlinedIcon from '@mui/icons-material/DescriptionOutlined';
+import MenuBookOutlinedIcon from '@mui/icons-material/MenuBookOutlined';
+import BusinessOutlinedIcon from '@mui/icons-material/BusinessOutlined';
+import FormatListBulletedOutlinedIcon from '@mui/icons-material/FormatListBulletedOutlined';import HistoryOutlinedIcon from '@mui/icons-material/HistoryOutlined';
+import GroupOutlinedIcon from '@mui/icons-material/GroupOutlined';
+import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
 
 import {
   Sidebar,
@@ -14,42 +21,42 @@ const items = [
   {
     title: "Inicio",
     url: "/home",
-    icon: Home,
+    icon: HomeOutlinedIcon,
   },
   {
     title: "Archivos",
     url: "/file-executions",
-    icon: FileText,
+    icon: DescriptionOutlinedIcon,
   },
   {
     title: "Reglas de Negocio",
     url: "/business-rules",
-    icon: BookA,
+    icon: MenuBookOutlinedIcon,
   },
   {
     title: "Empresas",
     url: "#",
-    icon: Building,
+    icon: BusinessOutlinedIcon,
   },
   {
     title: "Categorías",
     url: "#",
-    icon: LayoutList,
+    icon: FormatListBulletedOutlinedIcon,
   },
   {
     title: "Historial",
     url: "#",
-    icon: Inbox,
+    icon: HistoryOutlinedIcon,
   },
   {
     title: "Usuarios",
     url: "#",
-    icon: Users,
+    icon: GroupOutlinedIcon,
   },
   {
     title: "Configuración",
     url: "#",
-    icon: Settings,
+    icon: SettingsOutlinedIcon,
   },
 ];
 
