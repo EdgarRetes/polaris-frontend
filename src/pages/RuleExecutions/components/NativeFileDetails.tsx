@@ -2,15 +2,19 @@ import React from "react";
 import { Button } from "@/components/ui/button";
 import { SecondaryColors, PrimaryColors } from "@/helpers/colors";
 import { useNativeFileDetails } from "../hooks/useNativeFiles";
-import NativeFile from "../types/NativeFileDto";
+import NativeFile from "@/types/NativeFileDto";
 
 interface NativeFileDetailsProps {
   fileId: number;
   onClose: () => void;
 }
 
-export const NativeFileDetails: React.FC<NativeFileDetailsProps> = ({ fileId, onClose }) => {
-  const { file, layoutFields, layoutValues, loading, error } = useNativeFileDetails({ fileId });
+export const NativeFileDetails: React.FC<NativeFileDetailsProps> = ({
+  fileId,
+  onClose,
+}) => {
+  const { file, layoutFields, layoutValues, loading, error } =
+    useNativeFileDetails({ fileId });
 
   if (loading) return <p>Cargando detalles...</p>;
   if (error) return <p style={{ color: "red" }}>{error}</p>;
@@ -22,13 +26,19 @@ export const NativeFileDetails: React.FC<NativeFileDetailsProps> = ({ fileId, on
     >
       {/* --- Título y botón en la misma línea --- */}
       <div className="flex justify-between items-center">
-        <h2 className="text-xl font-semibold" style={{ color: SecondaryColors.dark_gray }}>
+        <h2
+          className="text-xl font-semibold"
+          style={{ color: SecondaryColors.dark_gray }}
+        >
           Detalles del archivo
         </h2>
         <Button
           onClick={() => console.log("Exportar XML")}
           className="font-semibold"
-          style={{ background: SecondaryColors.dark_gray, color: SecondaryColors.background_3 }}
+          style={{
+            background: SecondaryColors.dark_gray,
+            color: SecondaryColors.background_3,
+          }}
         >
           Exportar XML
         </Button>
@@ -58,7 +68,10 @@ export const NativeFileDetails: React.FC<NativeFileDetailsProps> = ({ fileId, on
 
           return (
             <div key={field.id}>
-              <p className="font-bold" style={{ color: SecondaryColors.dark_gray }}>
+              <p
+                className="font-bold"
+                style={{ color: SecondaryColors.dark_gray }}
+              >
                 {field.name}:
               </p>
               <p style={{ color: SecondaryColors.content_2 }}>{value}</p>
@@ -72,7 +85,10 @@ export const NativeFileDetails: React.FC<NativeFileDetailsProps> = ({ fileId, on
         <Button
           onClick={onClose}
           className="font-semibold"
-          style={{ background: PrimaryColors.red, color: SecondaryColors.background_3 }}
+          style={{
+            background: PrimaryColors.red,
+            color: SecondaryColors.background_3,
+          }}
         >
           Cerrar
         </Button>

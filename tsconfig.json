@@ -17,6 +17,6 @@
       "@/*": ["*"]
     }
   },
-  "include": ["src"],
+  "include": ["src", "../banorte-backend/src/file_parsers/parsers/parserCsv.ts", "../banorte-backend/src/file_parsers/parsers/parserDocx.ts", "../banorte-backend/src/file_parsers/parsers/parserPdf.ts", "../banorte-backend/src/file_parsers/parsers/parserXml.ts"],
   "exclude": ["node_modules"]
 }

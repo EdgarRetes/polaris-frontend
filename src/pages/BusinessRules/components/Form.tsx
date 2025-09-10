@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import BusinessRule from "../types/BusinessRuleDto";
+import BusinessRule from "@/types/BusinessRuleDto";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -16,7 +16,7 @@ import {
 import { ChevronDown } from "lucide-react";
 import { PrimaryColors, SecondaryColors } from "@/helpers/colors";
 
-import { PaymentMapping } from "../services/openAiService";
+import { PaymentMapping } from "../../../services/openAiService";
 
 interface BusinessRuleFormProps {
   onSubmit: (rule: BusinessRule) => void;

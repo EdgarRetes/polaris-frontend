@@ -5,8 +5,8 @@ import { NativeFileDetails } from "./components/NativeFileDetails";
 import { columns } from "./components/Columns";
 import { useRuleExecutions } from "./hooks/useRuleExcecutions";
 import { SecondaryColors } from "@/helpers/colors";
-import RuleExecution from "./types/RuleExecutionDto";
-import NativeFile from "./types/NativeFileDto";
+import RuleExecution from "@/types/RuleExecutionDto";
+import NativeFile from "@/types/NativeFileDto";
 
 export default function RuleExcutions() {
   const { data, isFormOpen, openForm, closeForm } = useRuleExecutions();
@@ -47,7 +47,10 @@ export default function RuleExcutions() {
       {isFormOpen ? (
         <NativeFilesForm onSubmit={openForm} onCancel={closeForm} />
       ) : selectedFile ? (
-        <NativeFileDetails fileId={selectedFile.id} onClose={handleCloseDetails} />
+        <NativeFileDetails
+          fileId={selectedFile.id}
+          onClose={handleCloseDetails}
+        />
       ) : (
         <RuleExecutionDataTable<RuleExecution, any>
           columns={columns}

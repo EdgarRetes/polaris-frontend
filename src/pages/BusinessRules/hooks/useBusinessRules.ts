@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
-import BusinessRule from "../types/BusinessRuleDto";
-import { createBusinessRule, getBusinessRules } from "../services/businessRulesService";
-import { uploadFileToOpenAI, mapPaymentFileToJSON, PaymentMapping } from "../services/openAiService";
+import BusinessRule from "@/types/BusinessRuleDto";
+import { createBusinessRule, getBusinessRules } from "@/services/businessRulesService";
+import { uploadFileToOpenAI, mapPaymentFileToJSON, PaymentMapping } from "@/services/openAiService";
 
 export function useBusinessRules(initialData: BusinessRule[] = []) {
   const [data, setData] = useState<BusinessRule[]>(initialData);

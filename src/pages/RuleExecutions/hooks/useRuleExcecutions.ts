@@ -1,17 +1,16 @@
 import { useState, useEffect } from "react";
-import NativeFile from "../types/NativeFileDto";
-import RuleExecution from "../types/RuleExecutionDto";
-import PaymentRowDto from "../types/PaymentRow";
-import LayoutValue from "../types/LayoutValueDto";
-import BusinessRule from "../../BusinessRules/types/BusinessRuleDto"
-import { createRuleExecution, getRuleExecution } from "../services/ruleExecutionsService";
+import NativeFile from "@/types/NativeFileDto";
+import RuleExecution from "@/types/RuleExecutionDto";
+import PaymentRowDto from "@/types/PaymentRow";
+import LayoutValue from "@/types/LayoutValueDto";
+import BusinessRule from "@/types/BusinessRuleDto"
+import { createRuleExecution, getRuleExecution } from "@/services/ruleExecutionsService";
 import { getLayoutFields } from "@/services/layoutFieldsService"
-import { createNativeFile } from "../services/nativeFilesService"
-import { createLayoutValue } from "../services/layoutValuesService"
-import { parseCSV } from "../helpers/parserCsv"
-import { parseXML } from "../helpers/parserXml"
-import { getBusinessRuleById } from "../../BusinessRules/services/businessRulesService"
-// import { uploadFileToOpenAI, mapPaymentFileToJSON, PaymentMapping } from "../services/openAiService";
+import { createNativeFile } from "@/services/nativeFilesService"
+import { createLayoutValue } from "@/services/layoutValuesService"
+import { uploadAndParseFile } from "@/services/fileParsersService"
+import { getBusinessRuleById } from "@/services/businessRulesService"
+import { uploadFileToOpenAI, getJSONValues } from "@/services/openAiService";
 
 export function useRuleExecutions(initialData: RuleExecution[] = []) {
   const [data, setData] = useState<RuleExecution[]>(initialData);
@@ -37,15 +36,20 @@ export function useRuleExecutions(initialData: RuleExecution[] = []) {
   const parseFile = async (file: File): Promise<Record<string, any>[]> => {
     const ext = file.name.split(".").pop()?.toLowerCase();
 
-    switch (ext) {
-      case "csv":
-        return parseCSV(file);
-      case "xml":
-        return parseXML(file);
-      default:
-        throw new Error("Tipo de archivo no soportado");
+    if (ext != "pdf" && ext != "csv" && ext != "doc" && ext != "docx" && ext != "xml"){
+      console.error("Error parseando el archivo:");
+      return [];
     }
-  };
+
+    try {
+      const parsedData = await uploadAndParseFile(file);
+      const responseJson = await getJSONValues(parsedData);
+      return responseJson ?? [];
+    } catch (error) {
+      console.error("Error parseando el archivo:", error);
+      return [];
+    }
+  }
 
   const mapRowToDto = (row: Record<string, any>): PaymentRowDto[] => {
     return Object.entries(row).map(([key, value]) => ({
@@ -64,18 +68,16 @@ export function useRuleExecutions(initialData: RuleExecution[] = []) {
     const responseFile = await createNativeFile(newFile);
 
     const responseFields = await getLayoutFields();
-    
+
     for (const field of responseFields) {
-      // Buscar en ruleJson el objeto que tiene idCode que coincide con el nombre del LayoutField
       const ruleFieldEntry = Object.entries(ruleJson[0]).find(
         ([key, val]) => key === field.name
       );
       if (!ruleFieldEntry) continue;
 
       const [idCode, mappedFieldName] = ruleFieldEntry;
-      // mappedFieldName: el nombre que aparece en mappedData.key
 
-      for (const row of mappedData) {
+      for (const [rowIndex, row] of mappedData.entries()) {
         const dataEntry = row.find((d: any) => d.key === mappedFieldName);
         if (!dataEntry) continue;
 
@@ -83,7 +85,9 @@ export function useRuleExecutions(initialData: RuleExecution[] = []) {
           fileId: responseFile.id,
           fieldId: field.id,
           value: String(dataEntry.value),
+          row: rowIndex + 1,
         };
+
         console.log("Valor a crear:", valueToCreate);
         await createLayoutValue(valueToCreate);
       }
@@ -94,7 +98,7 @@ export function useRuleExecutions(initialData: RuleExecution[] = []) {
 
   const createNewRuleExecution = async (fileId: number, ruleId: number) => {
 
-    const newExecution: Partial<RuleExecution> = { fileId, ruleId};
+    const newExecution: Partial<RuleExecution> = { fileId, ruleId };
     const response = await createRuleExecution(newExecution);
 
     return;
@@ -110,7 +114,5 @@ export function useRuleExecutions(initialData: RuleExecution[] = []) {
     getRuleJson,
     createNewNativeFile,
     createNewRuleExecution
-    // addNativeFile,
-    // getAIJsonFromFile
   };
 }
