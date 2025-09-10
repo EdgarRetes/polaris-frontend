@@ -2,6 +2,7 @@ import { ColumnDef } from "@tanstack/react-table";
 import BusinessRule from "@/types/BusinessRuleDto";
 import { Checkbox } from "@/components/ui/checkbox";
 
+
 export const columns: ColumnDef<BusinessRule>[] = [
   {
     id: "select",
