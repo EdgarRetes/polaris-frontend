@@ -1,11 +1,9 @@
 import { useState, useEffect } from "react";
-import axios from "axios";
-import NativeFile from "../types/NativeFileDto";
-import LayoutField from "../types/LayoutFieldDto";
-import LayoutValue from "../types/LayoutValueDto";
-import { API_BASE_URL } from "@/helpers/backend";
+import NativeFile from "@/types/NativeFileDto";
+import LayoutField from "@/types/LayoutFieldDto";
+import LayoutValue from "@/types/LayoutValueDto";
 import { getLayoutFields } from "@/services/layoutFieldsService";
-import { getLayoutValueByFileId } from "../services/layoutValuesService";
+import { getLayoutValueByFileId } from "@/services/layoutValuesService";
 
 interface UseNativeFileDetailsProps {
     fileId: number;

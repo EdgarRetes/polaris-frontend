@@ -1,5 +1,5 @@
 import axios from "axios";
-import LayoutField from "../pages/RuleExecutions/types/LayoutFieldDto";
+import LayoutField from "../types/LayoutFieldDto";
 
 import { API_BASE_URL } from "@/helpers/backend";
 

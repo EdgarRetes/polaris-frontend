@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import NativeFile from "../types/NativeFileDto";
+import NativeFile from "@/types/NativeFileDto";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -9,9 +9,6 @@ import { columns } from "../../BusinessRules/components/Columns";
 import { useRuleExecutions } from "../hooks/useRuleExcecutions";
 
 import { PrimaryColors, SecondaryColors } from "@/helpers/colors";
-import { createRuleExecution } from "../services/ruleExecutionsService";
-
-// import { PaymentMapping } from "../services/openAiService";
 
 interface NativeFileFormProps {
   onSubmit: (rule: NativeFile) => void;
@@ -25,39 +22,46 @@ export const NativeFilesForm: React.FC<NativeFileFormProps> = ({
   const [name, setName] = useState("");
   const [company, setCompany] = useState("");
 
-  const [inputMode, setInputMode] = useState<"text" | "file">("text");
+  const [inputMode, setInputMode] = useState<"rule" | "file">("rule");
   const [prompt, setPrompt] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
 
   const { data } = useBusinessRules();
-  const { parseFile, mapRowToDto, getRuleJson, createNewNativeFile, createNewRuleExecution} = useRuleExecutions();
+  const {
+    parseFile,
+    mapRowToDto,
+    getRuleJson,
+    createNewNativeFile,
+    createNewRuleExecution,
+  } = useRuleExecutions();
 
   const [selectedRuleId, setSelectedRuleId] = useState<number | null>(null);
 
   const handleSubmit = async () => {
-    // if (!name.trim() || !company.trim()) return;
+    if (!file) return;
     setLoading(true);
     try {
-      if (file) {
-        const parsed = await parseFile(file); // array de filas
-        const mappedData = parsed.map((row) => mapRowToDto(row));
-        if (selectedRuleId !== null) {
-          const ruleJson = await getRuleJson(selectedRuleId);
-          const newFile = await createNewNativeFile(
-            name,
-            'null', // companyId si aplica
-            mappedData,
-            ruleJson,
-            1 // userId actual
-          );
+      console.log(file);
+      const parsed = await parseFile(file);
+      console.log(parsed);
+      const mappedData = parsed.map((row) => mapRowToDto(row));
+      console.log(mappedData);
+      if (selectedRuleId !== null) {
+        const ruleJson = await getRuleJson(selectedRuleId);
+        const newFile = await createNewNativeFile(
+          name,
+          "null", // companyId si aplica
+          mappedData,
+          ruleJson,
+          1 // userId actual
+        );
 
-          if (newFile){
-            await createNewRuleExecution(newFile.id, selectedRuleId);
-          }
-        } else {
-          console.warn("No hay regla seleccionada");
+        if (newFile) {
+          await createNewRuleExecution(newFile.id, selectedRuleId);
         }
+      } else {
+        console.warn("No hay regla seleccionada");
       }
 
       setName("");
@@ -65,7 +69,7 @@ export const NativeFilesForm: React.FC<NativeFileFormProps> = ({
       setPrompt("");
       setFile(null);
       //   setStatus("Activa");
-      setInputMode("text");
+      setInputMode("rule");
       onCancel();
     } catch (err) {
       console.error("Error processing rule:", err);
@@ -122,14 +126,14 @@ export const NativeFilesForm: React.FC<NativeFileFormProps> = ({
       {/* --- Selector --- */}
       <Tabs
         value={inputMode}
-        onValueChange={(v) => setInputMode(v as "text" | "file")}
+        onValueChange={(v) => setInputMode(v as "rule" | "file")}
       >
         <TabsList className="bg-gray-100 p-1 rounded-md">
-          <TabsTrigger value="text">Procesar Con Reglas</TabsTrigger>
+          <TabsTrigger value="rule">Procesar Con Reglas</TabsTrigger>
           <TabsTrigger value="file">Procesar Nuevo</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="text">
+        <TabsContent value="rule">
           <BusinessRulesDataTable
             columns={columns}
             data={data}

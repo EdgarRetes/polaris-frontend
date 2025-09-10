@@ -2,8 +2,6 @@ import { BusinessRulesDataTable } from "./components/DataTable";
 import { BusinessRuleForm } from "./components/Form";
 import { columns } from "./components/Columns";
 import { useBusinessRules } from "./hooks/useBusinessRules";
-import BusinessRule from "./types/BusinessRuleDto";
-import { Button } from "@/components/ui/button";
 import { SecondaryColors } from "@/helpers/colors";
 
 
