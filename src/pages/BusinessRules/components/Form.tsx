@@ -36,16 +36,16 @@ export const BusinessRuleForm: React.FC<BusinessRuleFormProps> = ({
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const { addBusinessRule, getAIJsonFromFile } = useBusinessRules([]);
+  const { addBusinessRule, getAIJsonFromFile, parseFile } = useBusinessRules([]);
 
   const handleSubmit = async () => {
     if (!name.trim() || !company.trim()) return;
     setLoading(true);
     try {
       let definition: PaymentMapping[] | string | null = null;
-
       if (inputMode === "file" && file) {
-        const aiResponse = await getAIJsonFromFile(file);
+        const parsedData = await parseFile(file);
+        const aiResponse = await getAIJsonFromFile(parsedData);
         if (!aiResponse) {
           console.error("No se pudo obtener información del archivo.");
           return;

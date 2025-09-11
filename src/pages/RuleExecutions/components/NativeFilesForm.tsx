@@ -42,11 +42,8 @@ export const NativeFilesForm: React.FC<NativeFileFormProps> = ({
     if (!file) return;
     setLoading(true);
     try {
-      console.log(file);
       const parsed = await parseFile(file);
-      console.log(parsed);
       const mappedData = parsed.map((row) => mapRowToDto(row));
-      console.log(mappedData);
       if (selectedRuleId !== null) {
         const ruleJson = await getRuleJson(selectedRuleId);
         const newFile = await createNewNativeFile(
