@@ -68,17 +68,12 @@ export const deleteFileFromOpenAI = async (fileId: string): Promise<boolean> => 
 
 
 export const mapPaymentFileToJSON = async (
-    fileId: string
+    parsedData: any
 ): Promise<PaymentMapping[] | null> => {
     try {
         const thread = await openAiClient.post(
             OPENAI_API_URL_THREADS,
             {
-                tool_resources: {
-                    code_interpreter: {
-                        file_ids: [fileId],
-                    },
-                },
             },
             { headers: { "OpenAI-Beta": "assistants=v2" } }
         );
@@ -89,7 +84,7 @@ export const mapPaymentFileToJSON = async (
             `${OPENAI_API_URL_THREADS}/${threadId}/messages`,
             {
                 role: "user",
-                content: `Analiza el archivo adjunto y extrae la información de TODOS los pagos. Devuelve SOLAMENTE un array de objetos JSON válido que siga esta estructura: ${JSON.stringify({ operationCode: "", idCode: "", originAccount: "", destinationAccount: "", paymentAmount: 0, reference: "", paymentDescription: "", originCurrency: "", destinationCurrency: "", rfc: "", iva: 0, email: "", emailBeneficiary: "", applicationDate: "", paymentInstruction: "" })}. No incluyas texto explicativo, solo el JSON.`,
+                content: `Analiza la estructura ${parsedData} y extrae la información de TODOS los pagos. Devuelve SOLAMENTE un array de objetos JSON válido que siga esta estructura: ${JSON.stringify({ operationCode: "", idCode: "", originAccount: "", destinationAccount: "", paymentAmount: 0, reference: "", paymentDescription: "", originCurrency: "", destinationCurrency: "", rfc: "", iva: 0, email: "", emailBeneficiary: "", applicationDate: "", paymentInstruction: "" })}. No incluyas texto explicativo, solo el JSON.`,
             },
             { headers: { "OpenAI-Beta": "assistants=v2" } }
         );
@@ -132,7 +127,7 @@ export const mapPaymentFileToJSON = async (
 
         try {
             const jsonData: PaymentMapping[] = JSON.parse(cleanedJsonText);
-            await deleteFileFromOpenAI(fileId);
+            // await deleteFileFromOpenAI(fileId);
 
             return jsonData;
         } catch (parseError) {
