@@ -3,6 +3,7 @@ import BusinessRule from "@/types/BusinessRuleDto";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { LoadingOverlay } from "@/components/LoadingOverlay";
 
 import { useBusinessRules } from "../hooks/useBusinessRules";
 
@@ -36,26 +37,52 @@ export const BusinessRuleForm: React.FC<BusinessRuleFormProps> = ({
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const { addBusinessRule, getAIJsonFromFile, parseFile } = useBusinessRules([]);
+  const { addBusinessRule, getAIJsonFromFile, parseFile } = useBusinessRules(
+    []
+  );
 
   const handleSubmit = async () => {
     if (!name.trim() || !company.trim()) return;
     setLoading(true);
+
     try {
       let definition: PaymentMapping[] | string | null = null;
-      if (inputMode === "file" && file) {
+
+      if (inputMode === "file") {
+        if (!file) {
+          console.warn("No se seleccionó archivo");
+          return;
+        }
+
+        // 🔹 Parsear el archivo
         const parsedData = await parseFile(file);
+
+        // 🔹 Obtener la definición desde la IA
         const aiResponse = await getAIJsonFromFile(parsedData);
         if (!aiResponse) {
           console.error("No se pudo obtener información del archivo.");
           return;
         }
+
+        definition = aiResponse;
+      } else if (inputMode === "text") {
+        // 🔹 Definición desde el prompt
+        if (!prompt.trim()) {
+          console.warn("No se proporcionó texto para la regla.");
+          return;
+        }
+
+        // 🔹 Obtener la definición desde la IA
+        const aiResponse = await getAIJsonFromFile(prompt);
+        if (!aiResponse) {
+          console.error("No se pudo obtener información del archivo.");
+          return;
+        }
+
         definition = aiResponse;
       }
-      // else if (inputMode === "text") {
-      //   definition = prompt;
-      // }
 
+      // 🔹 Crear la regla
       const newRule: Partial<BusinessRule> = {
         name,
         company,
@@ -65,12 +92,14 @@ export const BusinessRuleForm: React.FC<BusinessRuleFormProps> = ({
 
       await addBusinessRule(newRule);
 
+      // 🔹 Resetear formulario
       setName("");
       setCompany("");
       setPrompt("");
       setFile(null);
       setStatus("Activa");
       setInputMode("text");
+
       onCancel();
     } catch (err) {
       console.error("Error processing rule:", err);
@@ -84,11 +113,12 @@ export const BusinessRuleForm: React.FC<BusinessRuleFormProps> = ({
       className="p-6 rounded-lg shadow-sm space-y-4"
       style={{ background: SecondaryColors.background_3 }}
     >
+      <LoadingOverlay isLoading={loading} />
       <h2
         className="text-xl font-semibold"
         style={{ color: SecondaryColors.dark_gray }}
       >
-        Crear Nueva Regla (IA)
+        Crear Nueva Regla
       </h2>
 
       {/* --- Datos básicos --- */}
@@ -144,7 +174,7 @@ export const BusinessRuleForm: React.FC<BusinessRuleFormProps> = ({
         onValueChange={(v) => setInputMode(v as "text" | "file")}
       >
         <TabsList className="bg-gray-100 p-1 rounded-md">
-          <TabsTrigger value="text">Prompt</TabsTrigger>
+          <TabsTrigger value="text">Texto</TabsTrigger>
           <TabsTrigger value="file">Archivo</TabsTrigger>
         </TabsList>
 
