@@ -62,9 +62,9 @@ export function RuleExecutionDataTable<TData extends FileRow, TValue>({
       <div className="flex items-center py-4 px-2 gap-x-2">
         <Input
           placeholder="Archivo..."
-          value={(table.getColumn("fileId")?.getFilterValue() as string) ?? ""}
+          value={(table.getColumn("fileName")?.getFilterValue() as string) ?? ""}
           onChange={(event) =>
-            table.getColumn("fileId")?.setFilterValue(event.target.value)
+            table.getColumn("fileName")?.setFilterValue(event.target.value)
           }
           className="max-w-sm border-0"
           style={{

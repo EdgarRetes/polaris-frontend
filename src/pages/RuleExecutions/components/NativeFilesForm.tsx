@@ -3,6 +3,8 @@ import NativeFile from "@/types/NativeFileDto";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { LoadingOverlay } from "@/components/LoadingOverlay";
+import FileUpload from "@/components/FileUpload";
 import { useBusinessRules } from "../../BusinessRules/hooks/useBusinessRules";
 import { BusinessRulesDataTable } from "@/pages/BusinessRules/components/DataTable";
 import { columns } from "../../BusinessRules/components/Columns";
@@ -41,35 +43,55 @@ export const NativeFilesForm: React.FC<NativeFileFormProps> = ({
   const handleSubmit = async () => {
     if (!file) return;
     setLoading(true);
+
     try {
-      const parsed = await parseFile(file);
-      const mappedData = parsed.map((row) => mapRowToDto(row));
-      if (selectedRuleId !== null) {
-        const ruleJson = await getRuleJson(selectedRuleId);
+      if (inputMode === "rule") {
+        // 🔹 Procesar con reglas
+        const parsed = await parseFile(file);
+        const mappedData = parsed.map((row) => mapRowToDto(row));
+
+        if (selectedRuleId !== null) {
+          const ruleJson = await getRuleJson(selectedRuleId);
+          const newFile = await createNewNativeFile(
+            name,
+            "null", // companyId si aplica
+            mappedData,
+            ruleJson,
+            1 // userId actual
+          );
+
+          if (newFile) {
+            await createNewRuleExecution(newFile.id, selectedRuleId);
+          }
+        } else {
+          console.warn("No hay regla seleccionada");
+        }
+      } else if (inputMode === "file") {
+        // 🔹 Procesar nuevo archivo SIN reglas
+        // Aquí defines qué debe pasar con el archivo en modo "file"
+        const parsed = await parseFile(file); // o tu propia lógica
         const newFile = await createNewNativeFile(
           name,
-          "null", // companyId si aplica
-          mappedData,
-          ruleJson,
-          1 // userId actual
+          "null",
+          parsed,
+          [], // sin reglas
+          1
         );
 
         if (newFile) {
-          await createNewRuleExecution(newFile.id, selectedRuleId);
+          await createNewRuleExecution(newFile.id);
         }
-      } else {
-        console.warn("No hay regla seleccionada");
       }
 
+      // 🔹 Reset form después de procesar
       setName("");
       setCompany("");
       setPrompt("");
       setFile(null);
-      //   setStatus("Activa");
       setInputMode("rule");
       onCancel();
     } catch (err) {
-      console.error("Error processing rule:", err);
+      console.error("Error processing file:", err);
     } finally {
       setLoading(false);
     }
@@ -80,6 +102,7 @@ export const NativeFilesForm: React.FC<NativeFileFormProps> = ({
       className="p-6 rounded-lg shadow-sm space-y-4"
       style={{ background: SecondaryColors.background_3 }}
     >
+      <LoadingOverlay isLoading={loading} />
       <h2
         className="text-xl font-semibold"
         style={{ color: SecondaryColors.dark_gray }}
@@ -105,21 +128,6 @@ export const NativeFilesForm: React.FC<NativeFileFormProps> = ({
         />
       </div>
 
-      <input
-        type="file"
-        accept=".csv, .json, .xlsx, .pdf, .doc, .docx, .xml, .txt"
-        onChange={(e) => setFile(e.target.files?.[0] || null)}
-        className="mt-3"
-      />
-      {file && (
-        <p
-          className="text-sm mt-1"
-          style={{ color: SecondaryColors.dark_gray }}
-        >
-          Archivo seleccionado: {file.name}
-        </p>
-      )}
-
       {/* --- Selector --- */}
       <Tabs
         value={inputMode}
@@ -129,6 +137,12 @@ export const NativeFilesForm: React.FC<NativeFileFormProps> = ({
           <TabsTrigger value="rule">Procesar Con Reglas</TabsTrigger>
           <TabsTrigger value="file">Procesar Nuevo</TabsTrigger>
         </TabsList>
+        <FileUpload
+          uploadMode="single"
+          onFilesUploaded={(files) =>
+            setFile(Array.isArray(files) ? files[0] : files)
+          }
+        />
 
         <TabsContent value="rule">
           <BusinessRulesDataTable

@@ -1,13 +1,21 @@
 import { ColumnDef } from "@tanstack/react-table";
 import RuleExecutions from "@/types/RuleExecutionDto";
 
-export const columns: ColumnDef<RuleExecutions>[] = [
+type RuleExecutionWithFile = RuleExecutions & {
+  file: {
+    name?: string;
+  };
+};
+
+export const columns: ColumnDef<RuleExecutionWithFile>[] = [
   {
-    accessorKey: "fileId",
+    id: "fileName",
     header: "Archivo",
+    accessorFn: (row) => row.file.name?.trim() || `Archivo #${row.fileId}`,
   },
   {
-    accessorKey: "ruleId",
+    accessorKey: "rule.name",
+    id: "ruleName",
     header: "Regla",
   },
 ];
