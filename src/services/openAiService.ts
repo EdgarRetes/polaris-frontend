@@ -214,3 +214,94 @@ export const getJSONValues = async (
     }
 };
 
+export const mapRowWithLLM = async (
+    row: any[],
+    responseFields: { id: number; name: string }[]
+): Promise<Record<string, string>> => {
+    try {
+        // Crear thread
+        const threadRes = await openAiClient.post(
+            OPENAI_API_URL_THREADS,
+            {},
+            { headers: { "OpenAI-Beta": "assistants=v2" } }
+        );
+        const threadId = threadRes.data.id;
+
+        const fieldsList = responseFields.map(f => f.name).join(", ");
+        const rowString = JSON.stringify(row);
+
+        // Enviar mensaje al LLM
+        await openAiClient.post(
+            `${OPENAI_API_URL_THREADS}/${threadId}/messages`,
+            {
+                role: "user",
+                content: `Tengo un archivo con los siguientes datos: ${rowString}.
+Necesito mapear estos datos a los siguientes campos esperados: ${fieldsList}.
+Devuelve un JSON donde cada key sea un nombre de campo esperado y su valor sea el key correspondiente en los datos del archivo. 
+Solo JSON, sin explicaciones.`,
+            },
+            { headers: { "OpenAI-Beta": "assistants=v2" } }
+        );
+
+        // Ejecutar el run con el asistente
+        const runRes = await openAiClient.post(
+            `${OPENAI_API_URL_THREADS}/${threadId}/runs`,
+            { assistant_id: CREATE_JSON_ASSISTANT_ID },
+            { headers: { "OpenAI-Beta": "assistants=v2" } }
+        );
+
+        const runId = runRes.data.id;
+        let runStatus = runRes.data.status;
+
+        // Esperar a que el run termine
+        while (runStatus === "queued" || runStatus === "in_progress") {
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            const runCheck = await openAiClient.get(
+                `${OPENAI_API_URL_THREADS}/${threadId}/runs/${runId}`,
+                { headers: { "OpenAI-Beta": "assistants=v2" } }
+            );
+            runStatus = runCheck.data.status;
+        }
+
+        if (runStatus !== "completed") {
+            throw new Error(`El run no se completó. Estado final: ${runStatus}`);
+        }
+
+        // Obtener la respuesta final del LLM
+        const messagesRes = await openAiClient.get(
+            `${OPENAI_API_URL_THREADS}/${threadId}/messages`,
+            {
+                headers: { "OpenAI-Beta": "assistants=v2" },
+                params: { order: "desc", limit: 1 },
+            }
+        );
+
+        const lastMessage = messagesRes.data.data[0];
+        if (!lastMessage || lastMessage.role !== "assistant" || !lastMessage.content[0]) {
+            throw new Error("No se recibió una respuesta válida del asistente.");
+        }
+
+        const lastMessageText = lastMessage.content[0].text.value;
+        const cleanedJsonText = lastMessageText.replace(/```json\n|```/g, "").trim();
+
+        try {
+            const jsonData: Record<string, string> = JSON.parse(cleanedJsonText);
+            return jsonData;
+        } catch (parseError) {
+            console.error("Error parseando JSON del LLM:", parseError);
+            console.error("Respuesta del LLM:", cleanedJsonText);
+            throw new Error("La respuesta del asistente no es un JSON válido.");
+        }
+    } catch (error) {
+        console.error("Error mapeando fila con LLM:", error);
+
+        // Fallback: mapear por igualdad de nombres si es posible
+        const fallback: Record<string, string> = {};
+        responseFields.forEach(f => {
+            const match = row.find(r => r.key === f.name);
+            if (match) fallback[f.name] = match.key;
+        });
+        return fallback;
+    }
+};
+

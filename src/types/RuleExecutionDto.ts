@@ -1,7 +1,7 @@
 
 type RuleExecution = {
   fileId: number
-  ruleId: number
+  ruleId?: number
   status?: string
 }
 

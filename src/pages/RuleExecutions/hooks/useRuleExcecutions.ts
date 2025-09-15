@@ -10,7 +10,7 @@ import { createNativeFile } from "@/services/nativeFilesService"
 import { createLayoutValue } from "@/services/layoutValuesService"
 import { uploadAndParseFile } from "@/services/fileParsersService"
 import { getBusinessRuleById } from "@/services/businessRulesService"
-import { uploadFileToOpenAI, getJSONValues } from "@/services/openAiService";
+import { getJSONValues, mapRowWithLLM } from "@/services/openAiService";
 
 export function useRuleExecutions(initialData: RuleExecution[] = []) {
   const [data, setData] = useState<RuleExecution[]>(initialData);
@@ -36,7 +36,7 @@ export function useRuleExecutions(initialData: RuleExecution[] = []) {
   const parseFile = async (file: File): Promise<Record<string, any>[]> => {
     const ext = file.name.split(".").pop()?.toLowerCase();
 
-    if (ext != "pdf" && ext != "csv" && ext != "doc" && ext != "docx" && ext != "xml"){
+    if (ext != "pdf" && ext != "csv" && ext != "doc" && ext != "docx" && ext != "xml") {
       console.error("Error parseando el archivo:");
       return [];
     }
@@ -63,40 +63,71 @@ export function useRuleExecutions(initialData: RuleExecution[] = []) {
     return response.definition ?? [];
   };
 
-  const createNewNativeFile = async (name: string, company: string, mappedData: any[], ruleJson: any[], userId: number) => {
+  const createNewNativeFile = async (
+    name: string,
+    company: string,
+    mappedData: any[],
+    ruleJson: any[] | null,
+    userId: number
+  ) => {
+    // Crear el archivo
     const newFile: Partial<NativeFile> = { name, company };
     const responseFile = await createNativeFile(newFile);
 
+    // Traer los campos esperados
     const responseFields = await getLayoutFields();
 
-    for (const field of responseFields) {
-      const ruleFieldEntry = Object.entries(ruleJson[0]).find(
-        ([key, val]) => key === field.name
-      );
-      if (!ruleFieldEntry) continue;
+    if (ruleJson && ruleJson.length > 0) {
+      // --- Caso con reglas ---
+      for (const field of responseFields) {
+        const ruleFieldEntry = Object.entries(ruleJson[0]).find(
+          ([key, val]) => key === field.name
+        );
+        if (!ruleFieldEntry) continue;
 
-      const [idCode, mappedFieldName] = ruleFieldEntry;
+        const [, mappedFieldName] = ruleFieldEntry;
 
+        for (const [rowIndex, row] of mappedData.entries()) {
+          const dataEntry = row.find((d: any) => d.key === mappedFieldName);
+          if (!dataEntry) continue;
+
+          const valueToCreate: Partial<LayoutValue> = {
+            fileId: responseFile.id,
+            fieldId: field.id,
+            value: String(dataEntry.value),
+            row: rowIndex + 1,
+          };
+
+          await createLayoutValue(valueToCreate);
+        }
+      }
+    } else {
+      // --- Caso sin regla: usar LLM para mapear los keys de mappedData a responseFields ---
       for (const [rowIndex, row] of mappedData.entries()) {
-        const dataEntry = row.find((d: any) => d.key === mappedFieldName);
-        if (!dataEntry) continue;
+        const mapping: Record<string, string> = await mapRowWithLLM(row, responseFields);
+        // mapping = { responseFieldName: keyEnMappedData }
 
-        const valueToCreate: Partial<LayoutValue> = {
-          fileId: responseFile.id,
-          fieldId: field.id,
-          value: String(dataEntry.value),
-          row: rowIndex + 1,
-        };
+        for (const field of responseFields) {
+          const mappedKey = mapping[field.name];
+          const value = row[mappedKey];
+          if (value === undefined) continue;
 
-        console.log("Valor a crear:", valueToCreate);
-        await createLayoutValue(valueToCreate);
+          const valueToCreate: Partial<LayoutValue> = {
+            fileId: responseFile.id,
+            fieldId: field.id,
+            value: String(value),
+            row: rowIndex + 1,
+          };
+
+          await createLayoutValue(valueToCreate);
+        }
       }
     }
 
     return responseFile;
-  }
+  };
 
-  const createNewRuleExecution = async (fileId: number, ruleId: number) => {
+  const createNewRuleExecution = async (fileId: number, ruleId?: number) => {
 
     const newExecution: Partial<RuleExecution> = { fileId, ruleId };
     const response = await createRuleExecution(newExecution);
