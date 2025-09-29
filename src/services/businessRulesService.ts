@@ -17,3 +17,13 @@ export const createBusinessRule = async (rule: Partial<BusinessRule>) => {
   const response = await axios.post(`${API_BASE_URL}/business-rules`, rule);
   return response.data;
 };
+
+export const deleteBusinessRule = async (businessRuleId: string | number): Promise<boolean> => {
+  try {
+    await axios.delete(`${API_BASE_URL}/business-rules/${businessRuleId}`);
+    return true;
+  } catch (err) {
+    console.error("Error deleting business rule:", err);
+    return false;
+  }
+};
