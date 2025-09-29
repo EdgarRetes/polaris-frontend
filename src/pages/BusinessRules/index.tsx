@@ -6,7 +6,7 @@ import { SecondaryColors } from "@/helpers/colors";
 
 
 export default function BusinessRules() {
-  const { data, isFormOpen, openForm, closeForm } =
+  const { data, isFormOpen, openForm, closeForm, removeBusinessRule } =
     useBusinessRules();
 
   return (
@@ -29,6 +29,7 @@ export default function BusinessRules() {
             columns={columns}
             data={data}
             onOpenForm={openForm}
+            onDelete={removeBusinessRule}
           />
         </>
       )}

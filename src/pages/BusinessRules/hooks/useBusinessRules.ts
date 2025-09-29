@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import BusinessRule from "@/types/BusinessRuleDto";
-import { createBusinessRule, getBusinessRules } from "@/services/businessRulesService";
+import { createBusinessRule, getBusinessRules, deleteBusinessRule } from "@/services/businessRulesService";
 import { uploadAndParseFile } from "@/services/fileParsersService"
-import { uploadFileToOpenAI, mapPaymentFileToJSON, PaymentMapping, getJSONValues} from "@/services/openAiService";
+import { uploadFileToOpenAI, mapPaymentFileToJSON, PaymentMapping, getJSONValues } from "@/services/openAiService";
 
 export function useBusinessRules(initialData: BusinessRule[] = []) {
   const [data, setData] = useState<BusinessRule[]>(initialData);
@@ -71,6 +71,20 @@ export function useBusinessRules(initialData: BusinessRule[] = []) {
     }
   };
 
+  const removeBusinessRule = async (id: number | string) => {
+    setLoading(true);
+    try {
+      const success = await deleteBusinessRule(id);
+      if (success) {
+        setData((prev) => prev.filter((r) => r.id !== id));
+      }
+    } catch (err) {
+      console.error("Error removing rule:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return {
     data,
     isFormOpen,
@@ -78,6 +92,7 @@ export function useBusinessRules(initialData: BusinessRule[] = []) {
     closeForm: () => setIsFormOpen(false),
     addBusinessRule,
     getAIJsonFromFile,
-    parseFile
+    parseFile,
+    removeBusinessRule,
   };
 }

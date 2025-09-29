@@ -1,3 +1,5 @@
+import { ConfirmModal } from "@/components/ConfirmModal";
+import * as React from "react";
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -6,7 +8,6 @@ import {
   getCoreRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-
 import {
   Table,
   TableBody,
@@ -15,37 +16,47 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-
 import { Button } from "@/components/ui/button";
-
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-
 import { ChevronDown } from "lucide-react";
-
-import * as React from "react";
 import { Input } from "@/components/ui/input";
 import { PrimaryColors, SecondaryColors } from "@/helpers/colors";
+
+import { Trash } from "lucide-react"
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
   onOpenForm?: () => void;
   onRowSelect?: (id: number | null) => void;
+  onDelete?: (id: string | number) => void;
 }
 
 export function BusinessRulesDataTable<
   TData extends { id: string | number },
   TValue
->({ columns, data, onOpenForm, onRowSelect }: DataTableProps<TData, TValue>) {
+>({
+  columns,
+  data,
+  onOpenForm,
+  onRowSelect,
+  onDelete,
+}: DataTableProps<TData, TValue>) {
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
   );
   const [rowSelection, setRowSelection] = React.useState({});
+
+  // --- NUEVOS ESTADOS PARA EL MODAL ---
+  const [modalOpen, setModalOpen] = React.useState(false);
+  const [selectedRowId, setSelectedRowId] = React.useState<
+    number | string | null
+  >(null);
 
   const table = useReactTable({
     data,
@@ -67,9 +78,17 @@ export function BusinessRulesDataTable<
     }
   }, [selectedIds, onRowSelect]);
 
+  const handleConfirmDelete = async () => {
+    if (selectedRowId != null) {
+      onDelete?.(Number(selectedRowId)); // llama a removeBusinessRule
+      setModalOpen(false);
+    }
+  };
+
   return (
     <div className="overflow-hidden">
       <div className="flex items-center py-4 px-2 gap-x-2">
+        {/* INPUT y DROPDOWNS existentes */}
         <Input
           placeholder="Nombre..."
           value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
@@ -82,8 +101,7 @@ export function BusinessRulesDataTable<
             color: SecondaryColors.content_2,
           }}
         />
-
-        {/* Filtro empresa */}
+        {/* Filtro Empresa */}
         <DropdownMenu>
           <DropdownMenuTrigger
             className="flex items-center gap-2 rounded-md p-2"
@@ -107,8 +125,7 @@ export function BusinessRulesDataTable<
             <DropdownMenuItem>ITESM</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
-
-        {/* Filtro estado */}
+        {/* Filtro Estado */}
         <DropdownMenu>
           <DropdownMenuTrigger
             className="flex items-center gap-2 rounded-md p-2"
@@ -148,7 +165,7 @@ export function BusinessRulesDataTable<
         </div>
       </div>
 
-      {/* Tabla */}
+      {/* TABLA */}
       <Table
         className="rounded-md border"
         style={{ borderColor: SecondaryColors.content_4 }}
@@ -162,22 +179,26 @@ export function BusinessRulesDataTable<
               key={headerGroup.id}
               style={{ borderColor: SecondaryColors.content_3 }}
             >
-              {headerGroup.headers.map((header) => {
-                return (
-                  <TableHead
-                    key={header.id}
-                    className="font-bold"
-                    style={{ color: SecondaryColors.dark_gray }}
-                  >
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
-                  </TableHead>
-                );
-              })}
+              {headerGroup.headers.map((header) => (
+                <TableHead
+                  key={header.id}
+                  className="font-bold"
+                  style={{ color: SecondaryColors.dark_gray }}
+                >
+                  {header.isPlaceholder
+                    ? null
+                    : flexRender(
+                        header.column.columnDef.header,
+                        header.getContext()
+                      )}
+                </TableHead>
+              ))}
+              <TableHead
+                className="font-bold"
+                style={{ color: SecondaryColors.dark_gray }}
+              >
+                Acciones
+              </TableHead>
             </TableRow>
           ))}
         </TableHeader>
@@ -198,26 +219,55 @@ export function BusinessRulesDataTable<
                     : SecondaryColors.dark_gray,
                   cursor: "pointer",
                 }}
-                onClick={() => {
-                  setRowSelection({ [row.id]: true });
-                }}
+                onClick={() => setRowSelection({ [row.id]: true })}
               >
                 {row.getVisibleCells().map((cell) => (
                   <TableCell key={cell.id}>
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </TableCell>
                 ))}
+
+                {/* --- NUEVO BOTÓN POR FILA --- */}
+                <TableCell>
+                  <Button
+                    onClick={(e) => {
+                      e.stopPropagation(); // evita seleccionar la fila
+                      setSelectedRowId(row.original.id);
+                      setModalOpen(true);
+                    }}
+                    style={{
+                      background: PrimaryColors.red,
+                      color: SecondaryColors.background_3,
+                    }}
+                    className="font-semibold"
+                  >
+                    <Trash />
+                  </Button>
+                </TableCell>
               </TableRow>
             ))
           ) : (
             <TableRow>
-              <TableCell colSpan={columns.length} className="h-24 text-center">
+              <TableCell
+                colSpan={columns.length + 1}
+                className="h-24 text-center"
+              >
                 No results.
               </TableCell>
             </TableRow>
           )}
         </TableBody>
       </Table>
+
+      {/* --- MODAL --- */}
+      <ConfirmModal
+        isOpen={modalOpen}
+        title="Borrar registro"
+        onCancel={() => setModalOpen(false)}
+        onConfirm={handleConfirmDelete}
+      >
+        ¿Deseas borrar la regla {selectedRowId}?
+      </ConfirmModal>
     </div>
   );
 }
