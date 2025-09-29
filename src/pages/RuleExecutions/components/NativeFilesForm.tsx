@@ -35,6 +35,13 @@ export const NativeFilesForm: React.FC<NativeFileFormProps> = ({
   onSubmit,
   onCancel,
 }) => {
+  const [rowSelection, setRowSelection] = useState<Record<string, boolean>>({});
+  const selectedRuleIdStr = rowSelection
+    ? Number(Object.keys(rowSelection)[0])
+    : null;
+
+  const selectedRuleId = selectedRuleIdStr ? Number(selectedRuleIdStr) : null;
+
   const [name, setName] = useState("");
   const [company, setCompany] = useState("");
 
@@ -57,8 +64,6 @@ export const NativeFilesForm: React.FC<NativeFileFormProps> = ({
     createNewRuleExecution,
   } = useRuleExecutions();
 
-  const [selectedRuleId, setSelectedRuleId] = useState<number | null>(null);
-
   const handleSubmit = async () => {
     if (!file) return;
 
@@ -69,6 +74,7 @@ export const NativeFilesForm: React.FC<NativeFileFormProps> = ({
 
       if (inputMode === "rule") {
         if (selectedRuleId !== null) {
+          console.log("Regla seleccionada ID:", selectedRuleId);
           const ruleJson = await getRuleJson(selectedRuleId);
           const mappedData = parsed.map((row) => mapRowToDto(row));
 
@@ -183,9 +189,10 @@ export const NativeFilesForm: React.FC<NativeFileFormProps> = ({
 
         <TabsContent value="rule">
           <BusinessRulesDataTable
-            columns={columns}
+            columns={columns(setRowSelection)}
             data={data}
-            onRowSelect={(id) => setSelectedRuleId(id)}
+            rowSelection={rowSelection}
+            setRowSelection={setRowSelection}
           />
         </TabsContent>
 
@@ -247,7 +254,9 @@ export const NativeFilesForm: React.FC<NativeFileFormProps> = ({
                   <div className="ml-2 space-y-1">
                     {row.values.map((v, valueIndex) => (
                       <div key={valueIndex} className="flex items-center gap-2">
-                        <span className="w-32 font-medium mr-3">{v.fieldName}:</span>
+                        <span className="w-32 font-medium mr-3">
+                          {v.fieldName}:
+                        </span>
                         <Input
                           value={v.value}
                           placeholder={v.fieldName}
