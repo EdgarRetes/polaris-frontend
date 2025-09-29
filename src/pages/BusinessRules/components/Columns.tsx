@@ -2,7 +2,8 @@ import { ColumnDef } from "@tanstack/react-table";
 import BusinessRule from "@/types/BusinessRuleDto";
 import { Checkbox } from "@/components/ui/checkbox";
 
-export const columns: ColumnDef<BusinessRule>[] = [
+export const columns = (setRowSelection: React.Dispatch<React.SetStateAction<Record<string, boolean>>>): ColumnDef<BusinessRule>[] => [
+  // Columna de selección
   {
     id: "select",
     header: ({ table }) => (
@@ -15,15 +16,18 @@ export const columns: ColumnDef<BusinessRule>[] = [
         aria-label="Select all"
       />
     ),
-    cell: ({ row }) => (
-      <Checkbox
-        checked={row.getIsSelected()}
-        onCheckedChange={(value) => row.toggleSelected(!!value)}
-        aria-label="Select row"
-      />
+    cell: ({ row, table }) => (
+      <div onClick={(e) => e.stopPropagation()}>
+        <Checkbox
+          checked={row.getIsSelected()}
+          onCheckedChange={(value) => {
+            const id = row.original.id.toString();
+            setRowSelection({ [id]: !!value });
+          }}
+          aria-label="Select row"
+        />
+      </div>
     ),
-    // enableSorting: false,
-    // enableHiding: false,
   },
   {
     accessorKey: "name",

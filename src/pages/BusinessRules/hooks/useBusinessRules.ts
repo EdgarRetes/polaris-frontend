@@ -1,13 +1,15 @@
 import { useState, useEffect } from "react";
 import BusinessRule from "@/types/BusinessRuleDto";
-import { createBusinessRule, getBusinessRules, deleteBusinessRule } from "@/services/businessRulesService";
+import { createBusinessRule, getBusinessRules, deleteBusinessRule, updateBusinessRule } from "@/services/businessRulesService";
 import { uploadAndParseFile } from "@/services/fileParsersService"
 import { uploadFileToOpenAI, mapPaymentFileToJSON, PaymentMapping, getJSONValues } from "@/services/openAiService";
 
 export function useBusinessRules(initialData: BusinessRule[] = []) {
   const [data, setData] = useState<BusinessRule[]>(initialData);
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchRules = async () => {
@@ -19,7 +21,7 @@ export function useBusinessRules(initialData: BusinessRule[] = []) {
       }
     };
     fetchRules();
-  }, [isFormOpen]);
+  }, [isFormOpen, isDetailsOpen]);
 
   const closeForm = () => {
     setIsFormOpen(false);
@@ -85,14 +87,36 @@ export function useBusinessRules(initialData: BusinessRule[] = []) {
     }
   };
 
+   const updateRule = async (id: number, updatedRule: Partial<BusinessRule>) => {
+    setLoading(true);
+    try {
+      const updated = await updateBusinessRule(id, updatedRule);
+      setData((prev) =>
+        prev.map((r) => (r.id === id ? updated : r))
+      );
+      return updated;
+    } catch (err) {
+      console.error("Error actualizando regla:", err);
+      return null;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return {
     data,
     isFormOpen,
+    isDetailsOpen,
     openForm: () => setIsFormOpen(true),
     closeForm: () => setIsFormOpen(false),
+    openDetails: () => setIsDetailsOpen(true),
+    closeDetails: () => setIsDetailsOpen(false),
     addBusinessRule,
     getAIJsonFromFile,
     parseFile,
     removeBusinessRule,
+    updateRule,
+    loading,
+    error
   };
 }

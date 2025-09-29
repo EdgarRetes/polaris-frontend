@@ -34,6 +34,7 @@ interface DataTableProps<TData, TValue> {
   onOpenForm?: () => void;
   onRowSelect?: (id: number | null) => void;
   onDelete?: (id: string | number) => void;
+  onRowClick?: (id: string | number) => void;
 }
 
 export function BusinessRulesDataTable<
@@ -45,23 +46,32 @@ export function BusinessRulesDataTable<
   onOpenForm,
   onRowSelect,
   onDelete,
-}: DataTableProps<TData, TValue>) {
+  onRowClick,
+  rowSelection,
+  setRowSelection,
+}: DataTableProps<TData, TValue> & {
+  rowSelection: Record<string, boolean>;
+  setRowSelection: React.Dispatch<
+    React.SetStateAction<Record<string, boolean>>
+  >;
+}) {
   const location = useLocation();
   const showActions = location.pathname === "/business-rules"; // solo mostrar botones en esta ruta
 
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
   );
-  const [rowSelection, setRowSelection] = React.useState({});
+
   const [modalOpen, setModalOpen] = React.useState(false);
-  const [selectedRowId, setSelectedRowId] = React.useState<number | string | null>(
-    null
-  );
+  const [selectedRowId, setSelectedRowId] = React.useState<
+    number | string | null
+  >(null);
 
   const table = useReactTable({
     data,
     columns,
     state: { columnFilters, rowSelection },
+    getRowId: (row) => row.id.toString(),
     onColumnFiltersChange: setColumnFilters,
     onRowSelectionChange: setRowSelection,
     getFilteredRowModel: getFilteredRowModel(),
@@ -110,16 +120,41 @@ export function BusinessRulesDataTable<
       </div>
 
       {/* Tabla */}
-      <Table className="rounded-md border" style={{ borderColor: SecondaryColors.content_4 }}>
-        <TableHeader style={{ backgroundColor: SecondaryColors.content_5 }} className="text-xl">
+      <Table
+        className="rounded-md border"
+        style={{ borderColor: SecondaryColors.content_4 }}
+      >
+        <TableHeader
+          style={{ backgroundColor: SecondaryColors.content_5 }}
+          className="text-xl"
+        >
           {table.getHeaderGroups().map((headerGroup) => (
-            <TableRow key={headerGroup.id} style={{ borderColor: SecondaryColors.content_3 }}>
+            <TableRow
+              key={headerGroup.id}
+              style={{ borderColor: SecondaryColors.content_3 }}
+            >
               {headerGroup.headers.map((header) => (
-                <TableHead key={header.id} className="font-bold" style={{ color: SecondaryColors.dark_gray }}>
-                  {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                <TableHead
+                  key={header.id}
+                  className="font-bold"
+                  style={{ color: SecondaryColors.dark_gray }}
+                >
+                  {header.isPlaceholder
+                    ? null
+                    : flexRender(
+                        header.column.columnDef.header,
+                        header.getContext()
+                      )}
                 </TableHead>
               ))}
-              {showActions && <TableHead className="font-bold" style={{ color: SecondaryColors.dark_gray }}>Acciones</TableHead>}
+              {showActions && (
+                <TableHead
+                  className="font-bold"
+                  style={{ color: SecondaryColors.dark_gray }}
+                >
+                  Acciones
+                </TableHead>
+              )}
             </TableRow>
           ))}
         </TableHeader>
@@ -132,11 +167,15 @@ export function BusinessRulesDataTable<
                 data-state={row.getIsSelected() && "selected"}
                 style={{
                   borderColor: SecondaryColors.content_3,
-                  backgroundColor: row.getIsSelected() ? PrimaryColors.red : SecondaryColors.background_2,
-                  color: row.getIsSelected() ? SecondaryColors.background_3 : SecondaryColors.dark_gray,
+                  backgroundColor: row.getIsSelected()
+                    ? PrimaryColors.red
+                    : SecondaryColors.background_2,
+                  color: row.getIsSelected()
+                    ? SecondaryColors.background_3
+                    : SecondaryColors.dark_gray,
                   cursor: "pointer",
                 }}
-                onClick={() => setRowSelection({ [row.id]: true })}
+                onClick={() => onRowClick?.(row.original.id)}
               >
                 {row.getVisibleCells().map((cell) => (
                   <TableCell key={cell.id}>
@@ -152,7 +191,10 @@ export function BusinessRulesDataTable<
                         setSelectedRowId(row.original.id);
                         setModalOpen(true);
                       }}
-                      style={{ background: PrimaryColors.red, color: SecondaryColors.background_3 }}
+                      style={{
+                        background: PrimaryColors.red,
+                        color: SecondaryColors.background_3,
+                      }}
                       className="font-semibold"
                     >
                       <Trash />
@@ -163,7 +205,10 @@ export function BusinessRulesDataTable<
             ))
           ) : (
             <TableRow>
-              <TableCell colSpan={columns.length + (showActions ? 1 : 0)} className="h-24 text-center">
+              <TableCell
+                colSpan={columns.length + (showActions ? 1 : 0)}
+                className="h-24 text-center"
+              >
                 No results.
               </TableCell>
             </TableRow>

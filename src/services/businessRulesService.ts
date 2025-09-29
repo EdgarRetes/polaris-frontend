@@ -27,3 +27,9 @@ export const deleteBusinessRule = async (businessRuleId: string | number): Promi
     return false;
   }
 };
+
+export const updateBusinessRule = async (id: number, rule: Partial<BusinessRule>) => {
+  const response = await axios.patch(`${API_BASE_URL}/business-rules/${id}`, rule);
+  return response.data;
+};
+

@@ -1,4 +1,4 @@
-import { PaymentMapping } from "../../../services/openAiService";
+import { PaymentMapping } from "@/services/openAiService";
 
 type BusinessRule = {
   id: number
