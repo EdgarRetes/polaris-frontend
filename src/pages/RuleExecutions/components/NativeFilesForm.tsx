@@ -9,6 +9,7 @@ import { useBusinessRules } from "../../BusinessRules/hooks/useBusinessRules";
 import { BusinessRulesDataTable } from "@/pages/BusinessRules/components/DataTable";
 import { columns } from "../../BusinessRules/components/Columns";
 import { useRuleExecutions } from "../hooks/useRuleExcecutions";
+import { ConfirmModal } from "@/components/ConfirmModal";
 
 import { PrimaryColors, SecondaryColors } from "@/helpers/colors";
 
@@ -16,6 +17,19 @@ interface NativeFileFormProps {
   onSubmit: (rule: NativeFile) => void;
   onCancel: () => void;
 }
+
+type PendingFile = {
+  name: string;
+  company: string;
+  mappedRows: {
+    row: number;
+    values: {
+      fieldName: string;
+      value: string;
+    }[];
+  }[];
+  ruleId?: number | null;
+};
 
 export const NativeFilesForm: React.FC<NativeFileFormProps> = ({
   onSubmit,
@@ -29,12 +43,17 @@ export const NativeFilesForm: React.FC<NativeFileFormProps> = ({
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
 
+  const [showConfirm, setShowConfirm] = useState(false);
+
+  const [pendingData, setPendingData] = useState<PendingFile | null>(null);
+
   const { data } = useBusinessRules();
   const {
     parseFile,
     mapRowToDto,
     getRuleJson,
-    createNewNativeFile,
+    saveConfirmedFile,
+    prepareFileMapping,
     createNewRuleExecution,
   } = useRuleExecutions();
 
@@ -42,58 +61,76 @@ export const NativeFilesForm: React.FC<NativeFileFormProps> = ({
 
   const handleSubmit = async () => {
     if (!file) return;
-    setLoading(true);
 
     try {
-      if (inputMode === "rule") {
-        // 🔹 Procesar con reglas
-        const parsed = await parseFile(file);
-        const mappedData = parsed.map((row) => mapRowToDto(row));
+      setLoading(true);
 
+      const parsed = await parseFile(file);
+
+      if (inputMode === "rule") {
         if (selectedRuleId !== null) {
           const ruleJson = await getRuleJson(selectedRuleId);
-          const newFile = await createNewNativeFile(
-            name,
-            "null", // companyId si aplica
-            mappedData,
-            ruleJson,
-            1 // userId actual
-          );
+          const mappedData = parsed.map((row) => mapRowToDto(row));
 
-          if (newFile) {
-            await createNewRuleExecution(newFile.id, selectedRuleId);
-          }
+          const prepared = await prepareFileMapping(mappedData, ruleJson);
+
+          setPendingData({
+            ...prepared,
+            name,
+            company,
+            ruleId: selectedRuleId,
+          });
+          setShowConfirm(true);
         } else {
           console.warn("No hay regla seleccionada");
         }
       } else if (inputMode === "file") {
-        // 🔹 Procesar nuevo archivo SIN reglas
-        // Aquí defines qué debe pasar con el archivo en modo "file"
-        const parsed = await parseFile(file); // o tu propia lógica
-        const newFile = await createNewNativeFile(
-          name,
-          "null",
-          parsed,
-          [], // sin reglas
-          1
-        );
+        const mappedData = parsed.map((row) => mapRowToDto(row));
 
-        if (newFile) {
-          await createNewRuleExecution(newFile.id);
-        }
+        const prepared = await prepareFileMapping(mappedData, []);
+
+        setPendingData({
+          ...prepared,
+          name,
+          company,
+          ruleId: null,
+        });
+        setShowConfirm(true);
+      }
+    } catch (err) {
+      console.error("Error processing file:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleConfirm = async () => {
+    if (!pendingData) return;
+
+    setLoading(true);
+    try {
+      const newFile = await saveConfirmedFile(pendingData, 1);
+
+      if (newFile) {
+        await createNewRuleExecution(
+          newFile.id,
+          pendingData.ruleId ?? undefined
+        );
       }
 
-      // 🔹 Reset form después de procesar
+      // 🔹 Reset después de crear
       setName("");
       setCompany("");
       setPrompt("");
       setFile(null);
       setInputMode("rule");
+      setPendingData(null);
       onCancel();
     } catch (err) {
-      console.error("Error processing file:", err);
+      console.error("Error creando archivo:", err);
     } finally {
       setLoading(false);
+      setShowConfirm(false);
     }
   };
 
@@ -174,6 +211,71 @@ export const NativeFilesForm: React.FC<NativeFileFormProps> = ({
         >
           Crear
         </Button>
+        <ConfirmModal
+          isOpen={showConfirm}
+          title="Confirmar creación"
+          confirmText="Sí, crear"
+          cancelText="Cancelar"
+          onConfirm={handleConfirm}
+          onCancel={() => setShowConfirm(false)}
+        >
+          <div className="space-y-3">
+            <Input
+              placeholder="Nombre"
+              value={pendingData?.name || ""}
+              onChange={(e) =>
+                setPendingData((prev) =>
+                  prev ? { ...prev, name: e.target.value } : prev
+                )
+              }
+            />
+            <Input
+              placeholder="Compañía"
+              value={pendingData?.company || ""}
+              onChange={(e) =>
+                setPendingData((prev) =>
+                  prev ? { ...prev, company: e.target.value } : prev
+                )
+              }
+            />
+
+            {/* Vista previa editable de filas con fieldName al lado */}
+            <div className="max-h-60 overflow-auto unded p-2 space-y-2">
+              {pendingData?.mappedRows.map((row, rowIndex) => (
+                <div key={row.row} className="py-1">
+                  {/* <p className="font-semibold mb-1">Fila {row.row}</p> */}
+                  <div className="ml-2 space-y-1">
+                    {row.values.map((v, valueIndex) => (
+                      <div key={valueIndex} className="flex items-center gap-2">
+                        <span className="w-32 font-medium mr-3">{v.fieldName}:</span>
+                        <Input
+                          value={v.value}
+                          placeholder={v.fieldName}
+                          onChange={(e) => {
+                            const newValue = e.target.value;
+                            setPendingData((prev) => {
+                              if (!prev) return prev;
+                              const newMappedRows = [...prev.mappedRows];
+                              newMappedRows[rowIndex] = {
+                                ...newMappedRows[rowIndex],
+                                values: [...newMappedRows[rowIndex].values],
+                              };
+                              newMappedRows[rowIndex].values[valueIndex] = {
+                                ...newMappedRows[rowIndex].values[valueIndex],
+                                value: newValue,
+                              };
+                              return { ...prev, mappedRows: newMappedRows };
+                            });
+                          }}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </ConfirmModal>
       </div>
     </div>
   );

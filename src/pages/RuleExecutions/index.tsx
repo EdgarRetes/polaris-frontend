@@ -7,6 +7,7 @@ import { useRuleExecutions } from "./hooks/useRuleExcecutions";
 import { SecondaryColors } from "@/helpers/colors";
 import RuleExecution from "@/types/RuleExecutionDto";
 import NativeFile from "@/types/NativeFileDto";
+import type { RuleExecutionWithFile } from "./components/Columns";
 
 export default function RuleExcutions() {
   const { data, isFormOpen, openForm, closeForm } = useRuleExecutions();
@@ -52,9 +53,9 @@ export default function RuleExcutions() {
           onClose={handleCloseDetails}
         />
       ) : (
-        <RuleExecutionDataTable<RuleExecution, any>
+        <RuleExecutionDataTable<RuleExecutionWithFile, any>
           columns={columns}
-          data={data}
+          data={data as RuleExecutionWithFile[]}
           onOpenForm={openForm}
           onRowClick={handleRowClick}
         />

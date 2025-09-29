@@ -1,7 +1,7 @@
 import { ColumnDef } from "@tanstack/react-table";
 import RuleExecutions from "@/types/RuleExecutionDto";
 
-type RuleExecutionWithFile = RuleExecutions & {
+export type RuleExecutionWithFile = RuleExecutions & {
   file: {
     name?: string;
   };
