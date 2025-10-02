@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { LoadingOverlay } from "@/components/LoadingOverlay";
+import { ConfirmModal } from "@/components/ConfirmModal";
+import FileUpload from "@/components/FileUpload";
 
 import { useBusinessRules } from "../hooks/useBusinessRules";
 
@@ -24,6 +26,13 @@ interface BusinessRuleFormProps {
   onCancel: () => void;
 }
 
+type PendingRule = {
+  name: string;
+  company: string;
+  status: BusinessRule["status"];
+  definition: PaymentMapping[];
+};
+
 export const BusinessRuleForm: React.FC<BusinessRuleFormProps> = ({
   onSubmit,
   onCancel,
@@ -31,78 +40,94 @@ export const BusinessRuleForm: React.FC<BusinessRuleFormProps> = ({
   const [name, setName] = useState("");
   const [company, setCompany] = useState("");
   const [status, setStatus] = useState<BusinessRule["status"]>("Activa");
-
   const [inputMode, setInputMode] = useState<"text" | "file">("text");
   const [prompt, setPrompt] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
 
+  const [pendingRule, setPendingRule] = useState<PendingRule | null>(null);
+  const [showConfirm, setShowConfirm] = useState(false);
+
   const { addBusinessRule, getAIJsonFromFile, parseFile } = useBusinessRules(
     []
   );
 
-  const handleSubmit = async () => {
+  /** PREPARAR: solo obtiene los datos, no toca la BD */
+  const handlePrepare = async () => {
     if (!name.trim() || !company.trim()) return;
-    setLoading(true);
 
+    setLoading(true);
     try {
-      let definition: PaymentMapping[] | string | null = null;
+      let definition: PaymentMapping[] = [];
+
+      const processEntry = (
+        entry: Partial<PaymentMapping>
+      ): PaymentMapping => ({
+        operationCode: entry.operationCode ?? "",
+        idCode: entry.idCode ?? "",
+        originAccount: entry.originAccount ?? "",
+        destinationAccount: entry.destinationAccount ?? "",
+        paymentAmount: entry.paymentAmount ?? 0,
+        reference: entry.reference ?? "",
+        paymentDescription: entry.paymentDescription ?? "",
+        originCurrency: entry.originCurrency ?? "",
+        destinationCurrency: entry.destinationCurrency ?? "",
+        rfc: entry.rfc ?? "",
+        iva: entry.iva ?? 0,
+        email: entry.email ?? "",
+        emailBeneficiary: entry.emailBeneficiary ?? "",
+        applicationDate: entry.applicationDate ?? "",
+        paymentInstruction: entry.paymentInstruction ?? "",
+      });
 
       if (inputMode === "file") {
-        if (!file) {
-          console.warn("No se seleccionó archivo");
-          return;
-        }
+        if (!file) return;
 
-        // 🔹 Parsear el archivo
         const parsedData = await parseFile(file);
-
-        // 🔹 Obtener la definición desde la IA
         const aiResponse = await getAIJsonFromFile(parsedData);
-        if (!aiResponse) {
-          console.error("No se pudo obtener información del archivo.");
-          return;
-        }
+        if (!aiResponse) return;
 
-        definition = aiResponse;
+        definition = aiResponse.map(processEntry);
       } else if (inputMode === "text") {
-        // 🔹 Definición desde el prompt
-        if (!prompt.trim()) {
-          console.warn("No se proporcionó texto para la regla.");
-          return;
-        }
+        if (!prompt.trim()) return;
 
-        // 🔹 Obtener la definición desde la IA
         const aiResponse = await getAIJsonFromFile(prompt);
-        if (!aiResponse) {
-          console.error("No se pudo obtener información del archivo.");
-          return;
-        }
+        if (!aiResponse) return;
 
-        definition = aiResponse;
+        definition = aiResponse.map(processEntry);
       }
 
-      // 🔹 Crear la regla
-      const newRule: Partial<BusinessRule> = {
-        name,
-        company,
-        status,
-        definition: definition ?? [],
-      };
+      // SOLO prepara la regla para el modal
+      setPendingRule({ name, company, status, definition });
+      setShowConfirm(true);
+    } catch (err) {
+      console.error("Error preparando la regla:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-      await addBusinessRule(newRule);
+  /** CONFIRMAR: guarda la regla en la BD */
+  const handleConfirm = async () => {
+    if (!pendingRule) return;
 
-      // 🔹 Resetear formulario
+    setLoading(true);
+    try {
+      await addBusinessRule(pendingRule);
+
+      // Limpiar form solo después de guardar
       setName("");
       setCompany("");
       setPrompt("");
       setFile(null);
       setStatus("Activa");
       setInputMode("text");
+      setPendingRule(null);
+      setShowConfirm(false);
 
       onCancel();
     } catch (err) {
-      console.error("Error processing rule:", err);
+      console.error("Error creando la regla:", err);
     } finally {
       setLoading(false);
     }
@@ -121,7 +146,7 @@ export const BusinessRuleForm: React.FC<BusinessRuleFormProps> = ({
         Crear Nueva Regla
       </h2>
 
-      {/* --- Datos básicos --- */}
+      {/* Datos básicos */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Input
           className="border-0"
@@ -138,13 +163,7 @@ export const BusinessRuleForm: React.FC<BusinessRuleFormProps> = ({
           style={{ background: SecondaryColors.background_2 }}
         />
         <DropdownMenu>
-          <DropdownMenuTrigger
-            className="flex items-center gap-2 rounded-md p-2"
-            style={{
-              backgroundColor: SecondaryColors.background,
-              color: SecondaryColors.content_2,
-            }}
-          >
+          <DropdownMenuTrigger className="flex items-center gap-2 rounded-md p-2">
             <span>{status}</span>
             <ChevronDown className="w-3 h-3" />
           </DropdownMenuTrigger>
@@ -168,16 +187,15 @@ export const BusinessRuleForm: React.FC<BusinessRuleFormProps> = ({
         </DropdownMenu>
       </div>
 
-      {/* --- Selector de fuente para la IA --- */}
+      {/* Tabs entrada IA */}
       <Tabs
         value={inputMode}
         onValueChange={(v) => setInputMode(v as "text" | "file")}
       >
-        <TabsList className="bg-gray-100 p-1 rounded-md">
+        <TabsList>
           <TabsTrigger value="text">Texto</TabsTrigger>
           <TabsTrigger value="file">Archivo</TabsTrigger>
         </TabsList>
-
         <TabsContent value="text">
           <Input
             className="border-0 mt-3"
@@ -187,13 +205,12 @@ export const BusinessRuleForm: React.FC<BusinessRuleFormProps> = ({
             style={{ background: SecondaryColors.background_2 }}
           />
         </TabsContent>
-
         <TabsContent value="file">
-          <input
-            type="file"
-            accept=".csv, .json, .xlsx, .pdf, .doc, .docx, .xml, .txt"
-            onChange={(e) => setFile(e.target.files?.[0] || null)}
-            className="mt-3"
+          <FileUpload
+            uploadMode="single"
+            onFilesUploaded={(files) =>
+              setFile(Array.isArray(files) ? files[0] : files)
+            }
           />
           {file && (
             <p
@@ -206,7 +223,7 @@ export const BusinessRuleForm: React.FC<BusinessRuleFormProps> = ({
         </TabsContent>
       </Tabs>
 
-      {/* --- Acciones --- */}
+      {/* Acciones */}
       <div className="flex justify-end gap-x-2">
         <Button
           onClick={onCancel}
@@ -216,7 +233,7 @@ export const BusinessRuleForm: React.FC<BusinessRuleFormProps> = ({
           Cancelar
         </Button>
         <Button
-          onClick={handleSubmit}
+          onClick={handlePrepare}
           className="font-semibold"
           style={{
             background: PrimaryColors.red,
@@ -226,6 +243,63 @@ export const BusinessRuleForm: React.FC<BusinessRuleFormProps> = ({
           Crear
         </Button>
       </div>
+
+      {/* Modal */}
+      {pendingRule && (
+        <ConfirmModal
+          isOpen={showConfirm}
+          title="Confirmar creación de regla"
+          confirmText="Sí, crear"
+          cancelText="Cancelar"
+          onConfirm={handleConfirm}
+          onCancel={() => setShowConfirm(false)}
+        >
+          <div className="space-y-3">
+            <Input
+              placeholder="Nombre"
+              value={pendingRule.name}
+              onChange={(e) =>
+                setPendingRule((prev) =>
+                  prev ? { ...prev, name: e.target.value } : prev
+                )
+              }
+            />
+            <Input
+              placeholder="Compañía"
+              value={pendingRule.company}
+              onChange={(e) =>
+                setPendingRule((prev) =>
+                  prev ? { ...prev, company: e.target.value } : prev
+                )
+              }
+            />
+            <div className="max-h-60 overflow-auto p-2 space-y-2">
+              {pendingRule.definition.map((entry, idx) => (
+                <div key={idx} className="border-b pb-2 mb-2">
+                  {Object.entries(entry).map(([field, value], i) => (
+                    <div key={i} className="flex items-center gap-2 w-full">
+                      <span className="font-medium w-48">{field}:</span>
+                      <Input
+                        value={value}
+                        onChange={(e) => {
+                          const newValue = e.target.value;
+                          setPendingRule((prev) => {
+                            if (!prev) return prev;
+                            const newDef = [...prev.definition];
+                            newDef[idx] = { ...newDef[idx], [field]: newValue };
+                            return { ...prev, definition: newDef };
+                          });
+                        }}
+                        className="flex-1"
+                      />
+                    </div>
+                  ))}
+                </div>
+              ))}
+            </div>
+          </div>
+        </ConfirmModal>
+      )}
     </div>
   );
 };
