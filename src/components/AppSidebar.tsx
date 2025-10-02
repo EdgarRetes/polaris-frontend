@@ -1,4 +1,5 @@
-import { Home, Inbox, Users, FileText, Settings, Building, BookA, LayoutList } from "lucide-react"
+import { useNavigate } from "react-router-dom";
+import { Home, Inbox, Users, FileText, Settings, Building, BookA, LayoutList } from "lucide-react";
 
 import {
   Sidebar,
@@ -38,12 +39,12 @@ const items = [
   // },
   {
     title: "Historial",
-    url: "audit-logs",
+    url: "/audit-logs",
     icon: Inbox,
   },
   {
     title: "Usuarios",
-    url: "#",
+    url: "/users",
     icon: Users,
   },
   // {
@@ -54,6 +55,8 @@ const items = [
 ];
 
 export function AppSidebar() {
+  const navigate = useNavigate();
+
   return (
     <Sidebar>
       <SidebarContent>
@@ -62,11 +65,18 @@ export function AppSidebar() {
           <SidebarMenu>
             {items.map((item) => (
               <SidebarMenuItem key={item.title}>
-                <SidebarMenuButton asChild size="lg">
-                  <a href={item.url}>
+                <SidebarMenuButton
+                  asChild
+                  size="lg"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    if (item.url !== "#") navigate(item.url);
+                  }}
+                >
+                  <div className="flex items-center space-x-2 cursor-pointer">
                     <item.icon />
                     <span>{item.title}</span>
-                  </a>
+                  </div>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             ))}

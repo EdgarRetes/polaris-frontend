@@ -1,37 +1,71 @@
-# React + Vite
+# Polaris Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Actualmente incluye autenticación (login/register), navegación con
+sidebar y los módulos de **Reglas de Negocio**, **Ejecuciones de
+Archivos** y **Usuarios**.
 
-Currently, two official plugins are available:
+------------------------------------------------------------------------
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Stack Tecnológico
 
-## Expanding the ESLint configuration
+-   [React](https://react.dev/) -- Librería principal de la UI.\
+-   [Vite](https://vitejs.dev/) -- Bundler y dev server.\
+-   [React Router](https://reactrouter.com/) -- Ruteo y navegación.\
+-   [TailwindCSS](https://tailwindcss.com/) -- Estilos utilitarios.\
+-   [shadcn/ui](https://ui.shadcn.com/) -- Componentes de interfaz
+    reutilizables.\
+-   [lucide-react](https://lucide.dev/) -- Íconos SVG.
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+------------------------------------------------------------------------
 
----
+## Autenticación
 
-## Login & Registro de Usuarios
+El flujo de login y registro funciona de la siguiente manera:
 
-Se implementa autenticación con **JWT** consumiendo el backend de NestJS:
+-   **Login** (`/auth`)\
+    Permite iniciar sesión con correo y contraseña.\
+    Al iniciar sesión correctamente se almacena el token JWT en
+    `localStorage` y se muestra el **dashboard**.
 
-1. **Login (`/auth/login`)**  
-   - El usuario ingresa su correo y contraseña.  
-   - Se envía una petición `POST` al backend (`http://localhost:3000/auth/login`).  
-   - Si las credenciales son válidas, el backend responde con un **token JWT**.  
-   - El token se guarda en `localStorage` y permite acceder a las rutas protegidas.  
+-   **Registro** (`/auth`)\
+    Permite crear un usuario con nombre, correo, contraseña y
+    confirmación de contraseña.\
+    Una vez registrado, se puede iniciar sesión directamente.
 
-2. **Registro (`/auth/register`)**  
-   - El usuario puede crear una nueva cuenta desde el formulario de registro.  
-   - Los datos se envían al backend (`/auth/register`).  
-   - Si el registro es exitoso, se redirige automáticamente a la página de login.  
+-   **Logout**\
+    Limpia el token y redirige automáticamente a la pantalla de login.
 
-3. **Protección de rutas**  
-   - Se utiliza un custom hook `useAuth` que revisa si existe un token en `localStorage`.  
-   - Si no hay token, cualquier intento de acceder a páginas protegidas redirige al login.  
-   - Si el token existe, se renderiza el layout principal con las páginas internas (Reglas de negocio, Archivos, etc.).  
+------------------------------------------------------------------------
 
-4. **Logout**  
-   - Al cerrar sesión se elimina el token de `localStorage` y el usuario es redirigido al login.  
+## Navegación
+
+La aplicación usa un **sidebar** con los siguientes módulos:
+
+-   **Inicio** → `/home`\
+-   **Archivos** → `/file-executions`\
+-   **Reglas de Negocio** → `/business-rules`\
+-   **Usuarios** → `/users`
+
+Al iniciar sesión, el header con el logo de Banorte y el botón de
+**Logout** se mantiene fijo en todas las páginas protegidas.
+
+------------------------------------------------------------------------
+
+## Módulos actuales
+
+### Usuarios (`/users`)
+
+-   Lista los usuarios registrados en el sistema (conectado al
+    backend).\
+-   Muestra nombre, correo y rol.\
+-   Botones de acción (ej: editar) disponibles para administración
+    futura.
+
+### Reglas de Negocio (`/business-rules`)
+
+-   Vista de reglas ya integradas desde el backend.\
+-   Incluye listado y detalles de reglas.
+
+### Ejecuciones de Archivos (`/file-executions`)
+
+-   Vista para ejecutar y consultar archivos.
