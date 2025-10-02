@@ -26,7 +26,7 @@ export default function Login() {
       login(res.data.access_token);
 
       // Redirigir a la página principal
-      navigate("/", { replace: true });
+      navigate("", { replace: true });
     } catch (err: any) {
       setError(err.response?.data?.message || "Login fallido");
     }
@@ -81,9 +81,9 @@ export default function Login() {
         <p className="mt-6 text-center text-gray-600">
           ¿No tienes cuenta?{" "}
           <Link
-    to="/auth/register"
-    className="text-red-600 font-semibold hover:underline"
-  >
+            to="/auth/register"
+            className="text-red-600 font-semibold hover:underline"
+          >
             Regístrate
           </Link>
         </p>
