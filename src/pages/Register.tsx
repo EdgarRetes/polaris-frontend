@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
 
 const apiUrl = import.meta.env.VITE_BACKEND_URL;
@@ -23,7 +23,7 @@ export default function Register() {
         firstName,
         middleName: middleName || undefined, // opcional
         lastName1,
-        lastName2: lastName2 || undefined,   // opcional
+        lastName2: lastName2 || undefined, // opcional
         email,
         password,
       });
@@ -45,7 +45,9 @@ export default function Register() {
           Crea tu cuenta
         </h2>
         {error && <p className="text-red-500 text-center mb-4">{error}</p>}
-        {success && <p className="text-green-500 text-center mb-4">{success}</p>}
+        {success && (
+          <p className="text-green-500 text-center mb-4">{success}</p>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
@@ -60,7 +62,9 @@ export default function Register() {
           </div>
 
           <div>
-            <label className="block text-gray-700 mb-1">Segundo Nombre (opcional)</label>
+            <label className="block text-gray-700 mb-1">
+              Segundo Nombre (opcional)
+            </label>
             <input
               type="text"
               value={middleName}
@@ -81,7 +85,9 @@ export default function Register() {
           </div>
 
           <div>
-            <label className="block text-gray-700 mb-1">Segundo Apellido (opcional)</label>
+            <label className="block text-gray-700 mb-1">
+              Segundo Apellido (opcional)
+            </label>
             <input
               type="text"
               value={lastName2}
@@ -91,7 +97,9 @@ export default function Register() {
           </div>
 
           <div>
-            <label className="block text-gray-700 mb-1">Correo electrónico</label>
+            <label className="block text-gray-700 mb-1">
+              Correo electrónico
+            </label>
             <input
               type="email"
               value={email}
@@ -122,9 +130,12 @@ export default function Register() {
 
         <p className="mt-6 text-center text-gray-600">
           ¿Ya tienes cuenta?{" "}
-          <a href="/auth/login" className="text-red-600 font-semibold hover:underline">
+          <Link
+            to="/auth/login"
+            className="text-red-600 font-semibold hover:underline"
+          >
             Inicia sesión
-          </a>
+          </Link>
         </p>
       </div>
     </div>

@@ -1,6 +1,6 @@
 // pages/Login.tsx
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
 import { useAuth } from "../hooks/useAuth";
 
@@ -80,12 +80,12 @@ export default function Login() {
 
         <p className="mt-6 text-center text-gray-600">
           ¿No tienes cuenta?{" "}
-          <a
-            href="/auth/register"
-            className="text-red-600 font-semibold hover:underline"
-          >
+          <Link
+    to="/auth/register"
+    className="text-red-600 font-semibold hover:underline"
+  >
             Regístrate
-          </a>
+          </Link>
         </p>
       </div>
     </div>

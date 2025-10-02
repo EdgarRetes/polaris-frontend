@@ -8,10 +8,10 @@ import RuleExecutions from "./pages/RuleExecutions";
 import { useAuth } from "./hooks/useAuth";
 
 function App() {
-  const { isAuthenticated, loading } = useAuth(); // added loading
+  const { isAuthenticated } = useAuth(); // added loading
 
   // Show a simple loading state while checking authentication
-  if (loading) return <div>Loading...</div>;
+  // if (loading) return <div>Loading...</div>;
 
   return (
     <Router>
