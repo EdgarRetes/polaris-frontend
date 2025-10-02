@@ -75,46 +75,66 @@ export function useRuleExecutions(initialData: RuleExecution[] = []) {
   };
 
   // 1. Prepara los datos (sin guardar todavía)
-  const prepareFileMapping = async (
+const prepareFileMapping = async (
     mappedData: any[],
-    ruleJson: any[] | null
+    ruleJson: any | any[] | null
   ): Promise<PendingFile> => {
     const responseFields = await getLayoutFields();
     let mappedRows: PendingFile["mappedRows"] = [];
 
-    if (ruleJson && ruleJson.length > 0) {
+    const rulesArray = ruleJson
+      ? Array.isArray(ruleJson)
+        ? ruleJson
+        : [ruleJson]
+      : [];
+
+    if (rulesArray.length > 0) {
       // --- Caso con reglas ---
+      const rules = rulesArray[0]; // Tomamos el primer set de reglas
+      
       for (const [rowIndex, row] of mappedData.entries()) {
         let rowValues: PendingFile["mappedRows"][number]["values"] = [];
+        
         for (const field of responseFields) {
-          let value = ""; // por defecto vacío
-          const ruleFieldEntry = Object.entries(ruleJson[0]).find(
-            ([key]) => key === field.name
-          );
-          if (ruleFieldEntry) {
-            const [, mappedFieldName] = ruleFieldEntry;
+          let value = "";
+          
+          // Obtener el nombre del campo mapeado desde las reglas
+          const mappedFieldName = rules[field.name];
+          
+          if (mappedFieldName) {
+            // Buscar el valor en el row actual
             const dataEntry = row.find((d: any) => d.key === mappedFieldName);
             if (dataEntry) {
-              value = String(dataEntry.value);
+              value = String(dataEntry.value ?? "");
             }
           }
-          rowValues.push({ fieldName: field.name, value }); // siempre se agrega
+          
+          rowValues.push({ fieldName: field.name, value });
         }
+        
         mappedRows.push({ row: rowIndex + 1, values: rowValues });
       }
     } else {
-      // --- Caso sin regla ---
+      // --- Caso sin regla (con LLM) ---
       for (const [rowIndex, row] of mappedData.entries()) {
         const mapping: Record<string, string> = await mapRowWithLLM(row, responseFields);
         let rowValues: PendingFile["mappedRows"][number]["values"] = [];
+        
         for (const field of responseFields) {
           const mappedKey = mapping[field.name];
           let value = "";
-          if (mappedKey && row[mappedKey] !== undefined) {
-            value = String(row[mappedKey]);
+          
+          if (mappedKey) {
+            // Buscar en el array de row el elemento con ese key
+            const dataEntry = row.find((d: any) => d.key === mappedKey);
+            if (dataEntry) {
+              value = String(dataEntry.value ?? "");
+            }
           }
-          rowValues.push({ fieldName: field.name, value }); // siempre se agrega
+          
+          rowValues.push({ fieldName: field.name, value });
         }
+        
         mappedRows.push({ row: rowIndex + 1, values: rowValues });
       }
     }
@@ -129,8 +149,9 @@ export function useRuleExecutions(initialData: RuleExecution[] = []) {
   const saveConfirmedFile = async (pending: PendingFile, userId: number) => {
     const newFile: Partial<NativeFile> = {
       name: pending.name,
-      company: pending.company,
+      // company: pending.company,
     };
+    console.log(newFile)
     const responseFile = await createNativeFile(newFile);
 
     const responseFields = await getLayoutFields();
@@ -139,7 +160,6 @@ export function useRuleExecutions(initialData: RuleExecution[] = []) {
       for (const value of row.values) {
         const field = responseFields.find((f) => f.name === value.fieldName);
         if (!field) continue;
-
         const valueToCreate: Partial<LayoutValue> = {
           fileId: responseFile.id,
           fieldId: field.id,

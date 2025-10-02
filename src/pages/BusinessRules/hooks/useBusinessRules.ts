@@ -61,6 +61,7 @@ export function useBusinessRules(initialData: BusinessRule[] = []) {
 
 
   const addBusinessRule = async (rule: Partial<BusinessRule>) => {
+    console.log(rule);
     setLoading(true);
     try {
       const created = await createBusinessRule(rule);

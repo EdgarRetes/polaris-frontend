@@ -5,7 +5,7 @@ type BusinessRule = {
   name?: string
   company?: string
   status?: "Borrador" | "Inactiva" | "Activa",
-  definition?: PaymentMapping[],
+  definition?: PaymentMapping,
 }
 
 export default BusinessRule

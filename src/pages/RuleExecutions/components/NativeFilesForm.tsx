@@ -74,16 +74,16 @@ export const NativeFilesForm: React.FC<NativeFileFormProps> = ({
 
       if (inputMode === "rule") {
         if (selectedRuleId !== null) {
-          console.log("Regla seleccionada ID:", selectedRuleId);
           const ruleJson = await getRuleJson(selectedRuleId);
           const mappedData = parsed.map((row) => mapRowToDto(row));
+        
 
           const prepared = await prepareFileMapping(mappedData, ruleJson);
 
           setPendingData({
             ...prepared,
             name,
-            company,
+            // company,
             ruleId: selectedRuleId,
           });
           setShowConfirm(true);
@@ -98,7 +98,7 @@ export const NativeFilesForm: React.FC<NativeFileFormProps> = ({
         setPendingData({
           ...prepared,
           name,
-          company,
+          // company,
           ruleId: null,
         });
         setShowConfirm(true);

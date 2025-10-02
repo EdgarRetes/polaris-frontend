@@ -113,7 +113,15 @@ export const BusinessRuleForm: React.FC<BusinessRuleFormProps> = ({
 
     setLoading(true);
     try {
-      await addBusinessRule(pendingRule);
+      const firstDefinition = pendingRule.definition[0];
+      const ruleToSend: Partial<BusinessRule> = {
+        name: pendingRule.name,
+        // companyId: Number(pendingRule.company),
+        // status: pendingRule.status,
+        definition: firstDefinition,
+      };
+
+      await addBusinessRule(ruleToSend);
 
       // Limpiar form solo después de guardar
       setName("");
