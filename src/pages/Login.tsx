@@ -26,7 +26,7 @@ export default function Login() {
       login(res.data.access_token);
 
       // Redirigir a la página principal
-      navigate("/business-rules");
+      navigate("/");
     } catch (err: any) {
       setError(err.response?.data?.message || "Login fallido");
     }
