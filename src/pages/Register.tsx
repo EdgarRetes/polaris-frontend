@@ -2,6 +2,8 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
+const apiUrl = import.meta.env.VITE_BACKEND_URL;
+
 export default function Register() {
   const navigate = useNavigate();
 
@@ -17,7 +19,7 @@ export default function Register() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await axios.post("http://localhost:3000/auth/register", {
+      await axios.post(`${apiUrl}/auth/register`, {
         firstName,
         middleName: middleName || undefined, // opcional
         lastName1,

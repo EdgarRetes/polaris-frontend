@@ -4,6 +4,8 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { useAuth } from "../hooks/useAuth";
 
+const apiUrl = import.meta.env.VITE_BACKEND_URL;
+
 export default function Login() {
   const { login } = useAuth(); // Hook de autenticación
   const navigate = useNavigate();
@@ -15,7 +17,7 @@ export default function Login() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const res = await axios.post("http://localhost:3000/auth/login", {
+      const res = await axios.post(`${apiUrl}/auth/login`, {
         email,
         password,
       });
@@ -45,7 +47,9 @@ export default function Login() {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-gray-700 mb-1">Correo electrónico</label>
+            <label className="block text-gray-700 mb-1">
+              Correo electrónico
+            </label>
             <input
               type="email"
               value={email}
