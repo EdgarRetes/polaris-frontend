@@ -1,19 +1,50 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import MainLayout from "./layouts/MainLayout";
-import Login from "./pages/Login";
-import Register from "./pages/Register";
+import AuthLayout from "./layouts/AuthLayout";
+import AuthCard from "./components/AuthCard";
+import LoginForm from "./components/LoginForm";
+import RegisterForm from "./components/RegisterForm";
+import { useState } from "react";
+
 import BusinessRules from "./pages/BusinessRules";
 import RuleExecutions from "./pages/RuleExecutions";
-import ProtectedRoute from "./components/ProtectedRoute";
+import UsersPage from "./pages/Users";
 import AuditLogs from "./pages/AuditLogs";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
+  const [isLogin, setIsLogin] = useState(true);
+
   return (
     <Router>
       <Routes>
-        {/* Public routes */}
-        <Route path="/auth/login" element={<Login />} />
-        <Route path="/auth/register" element={<Register />} />
+        {/* Public auth route */}
+        <Route
+          path="/auth"
+          element={
+            <AuthLayout>
+              <div className="flex items-center justify-center w-full h-full">
+                <AuthCard>
+                  {isLogin ? (
+                    <LoginForm />
+                  ) : (
+                    <RegisterForm onSuccess={() => setIsLogin(true)} />
+                  )}
+
+                  <p className="mt-6 text-center text-gray-600">
+                    {isLogin ? "¿No tienes cuenta?" : "¿Ya tienes cuenta?"}{" "}
+                    <button
+                      className="text-red-600 font-semibold hover:underline"
+                      onClick={() => setIsLogin(!isLogin)}
+                    >
+                      {isLogin ? "Regístrate" : "Inicia sesión"}
+                    </button>
+                  </p>
+                </AuthCard>
+              </div>
+            </AuthLayout>
+          }
+        />
 
         {/* Protected routes */}
         <Route
@@ -47,6 +78,16 @@ function App() {
           }
         />
         <Route
+          path="/users"
+          element={
+            <ProtectedRoute>
+              <MainLayout>
+                <UsersPage />
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="/audit-logs"
           element={
             <ProtectedRoute>
@@ -56,6 +97,9 @@ function App() {
             </ProtectedRoute>
           }
         />
+
+        {/* Fallback */}
+        <Route path="*" element={<Navigate to="/auth" replace />} />
       </Routes>
     </Router>
   );
