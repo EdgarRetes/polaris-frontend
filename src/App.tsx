@@ -5,6 +5,7 @@ import Register from "./pages/Register";
 import BusinessRules from "./pages/BusinessRules";
 import RuleExecutions from "./pages/RuleExecutions";
 import ProtectedRoute from "./components/ProtectedRoute";
+import AuditLogs from "./pages/AuditLogs";
 
 function App() {
   return (
@@ -41,6 +42,16 @@ function App() {
             <ProtectedRoute>
               <MainLayout>
                 <RuleExecutions />
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/audit-logs"
+          element={
+            <ProtectedRoute>
+              <MainLayout>
+                <AuditLogs />
               </MainLayout>
             </ProtectedRoute>
           }

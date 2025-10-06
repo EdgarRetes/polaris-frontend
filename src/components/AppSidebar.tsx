@@ -26,19 +26,19 @@ const items = [
     url: "/business-rules",
     icon: BookA,
   },
-  {
-    title: "Empresas",
-    url: "#",
-    icon: Building,
-  },
-  {
-    title: "Categorías",
-    url: "#",
-    icon: LayoutList,
-  },
+  // {
+  //   title: "Empresas",
+  //   url: "#",
+  //   icon: Building,
+  // },
+  // {
+  //   title: "Categorías",
+  //   url: "#",
+  //   icon: LayoutList,
+  // },
   {
     title: "Historial",
-    url: "#",
+    url: "audit-logs",
     icon: Inbox,
   },
   {
@@ -46,11 +46,11 @@ const items = [
     url: "#",
     icon: Users,
   },
-  {
-    title: "Configuración",
-    url: "#",
-    icon: Settings,
-  },
+  // {
+  //   title: "Configuración",
+  //   url: "#",
+  //   icon: Settings,
+  // },
 ];
 
 export function AppSidebar() {

@@ -14,18 +14,18 @@ export const BusinessRuleDetails: React.FC<BusinessRuleDetailsProps> = ({
   rule,
   onClose,
 }) => {
-  const { updateRule, openDetails, closeDetails } = useBusinessRules(); // <--- aquí
+  const { updateRule, openDetails, closeDetails } = useBusinessRules();
 
   const [editedName, setEditedName] = useState(rule.name || "");
   const [editedCompany, setEditedCompany] = useState(rule.company || "");
-  const [editedDefinition, setEditedDefinition] = useState(
-    rule.definition || []
+  // Cambia el tipo inicial a objeto vacío si definition no es un array
+  const [editedDefinition, setEditedDefinition] = useState<Record<string, any>>(
+    rule.definition || {}
   );
 
   const [isChanged, setIsChanged] = useState(false);
   const [saving, setSaving] = useState(false);
 
-  // Abrimos detalle al montar y cerramos al desmontar
   useEffect(() => {
     openDetails();
     return () => {
@@ -33,13 +33,12 @@ export const BusinessRuleDetails: React.FC<BusinessRuleDetailsProps> = ({
     };
   }, [openDetails, closeDetails]);
 
-  // Detectar cambios en cualquier campo
   useEffect(() => {
     const changedName = editedName !== (rule.name || "");
     const changedCompany = editedCompany !== (rule.company || "");
     const changedDefinition =
       JSON.stringify(editedDefinition) !==
-      JSON.stringify(rule.definition || []);
+      JSON.stringify(rule.definition || {});
     setIsChanged(changedName || changedCompany || changedDefinition);
   }, [
     editedName,
@@ -50,17 +49,18 @@ export const BusinessRuleDetails: React.FC<BusinessRuleDetailsProps> = ({
     rule.definition,
   ]);
 
-  const handleDefinitionChange = (index: number, key: string, value: any) => {
-    const newDef = [...editedDefinition];
-    newDef[index] = { ...newDef[index], [key]: value };
-    setEditedDefinition(newDef);
+  const handleDefinitionChange = (key: string, value: any) => {
+    setEditedDefinition({
+      ...editedDefinition,
+      [key]: value,
+    });
   };
 
   const handleSave = async () => {
     setSaving(true);
     await updateRule(rule.id, {
       name: editedName,
-      company: editedCompany,
+      // company: editedCompany,
       definition: editedDefinition,
     });
     setIsChanged(false);
@@ -74,7 +74,6 @@ export const BusinessRuleDetails: React.FC<BusinessRuleDetailsProps> = ({
       className="p-6 rounded-lg shadow-md space-y-4"
       style={{ background: SecondaryColors.background_2 }}
     >
-      {/* --- Título y botón de acción --- */}
       <div className="flex justify-between items-center">
         <h2
           className="text-xl font-semibold"
@@ -94,7 +93,6 @@ export const BusinessRuleDetails: React.FC<BusinessRuleDetailsProps> = ({
         </Button>
       </div>
 
-      {/* --- Información básica editable --- */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="flex flex-col">
           <p className="font-bold" style={{ color: SecondaryColors.dark_gray }}>
@@ -120,31 +118,28 @@ export const BusinessRuleDetails: React.FC<BusinessRuleDetailsProps> = ({
         </div>
       </div>
 
-      {/* --- Campos dinámicos editables --- */}
+      {/* Campos dinámicos - itera sobre las claves del objeto */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-        {editedDefinition.map((def, index) =>
-          Object.entries(def).map(([key, value]) => (
-            <div key={`${index}-${key}`} className="flex flex-col">
-              <p
-                className="font-bold"
-                style={{ color: SecondaryColors.dark_gray }}
-              >
-                {key}:
-              </p>
-              <Input
-                className="border-0"
-                value={value ?? ""}
-                onChange={(e) =>
-                  handleDefinitionChange(index, key, e.target.value)
-                }
-                style={{ background: SecondaryColors.background_3 }}
-              />
-            </div>
-          ))
-        )}
+        {Object.entries(editedDefinition).map(([key, value]) => (
+          <div key={key} className="flex flex-col">
+            <p
+              className="font-bold"
+              style={{ color: SecondaryColors.dark_gray }}
+            >
+              {key}:
+            </p>
+            <Input
+              className="border-0"
+              value={String(value ?? "")}
+              onChange={(e) =>
+                handleDefinitionChange(key, e.target.value)
+              }
+              style={{ background: SecondaryColors.background_3 }}
+            />
+          </div>
+        ))}
       </div>
 
-      {/* --- Botones --- */}
       <div className="flex justify-end gap-2 mt-4">
         <Button
           onClick={() => {
