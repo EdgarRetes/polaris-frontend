@@ -90,7 +90,7 @@ export const columns: ColumnDef<AuditLog>[] = [
         <div className="flex flex-col gap-1">
           {diffs.map(diff => (
             <div key={diff.key}>
-              <span style={{ color: AdditionalColors.warnings, fontWeight: "bold" }}>
+              <span>
                 {diff.key}: {diff.before} → {diff.after}
               </span>
             </div>
