@@ -11,7 +11,7 @@ export type RuleExecutionWithFile = RuleExecutions & {
 
 // Map de estatus con traducción y color Tailwind
 const statusMap: Record<string, { label: string; colorClass: string }> = {
-  SUCCESS: { label: "Éxito", colorClass: "bg-green-600 text-white" },
+  SUCCESS: { label: "Exitoso", colorClass: "bg-green-600 text-white" },
   FAILED: { label: "Fallido", colorClass: "bg-red-500 text-white" },
   IN_PROGRESS: { label: "En progreso", colorClass: "bg-yellow-500 text-white" },
 };
