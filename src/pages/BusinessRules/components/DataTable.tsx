@@ -209,7 +209,7 @@ export function BusinessRulesDataTable<
                 colSpan={columns.length + (showActions ? 1 : 0)}
                 className="h-24 text-center"
               >
-                No results.
+                No hay datos por ahora.
               </TableCell>
             </TableRow>
           )}

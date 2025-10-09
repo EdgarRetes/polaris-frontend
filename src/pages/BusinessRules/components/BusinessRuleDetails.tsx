@@ -81,7 +81,7 @@ export const BusinessRuleDetails: React.FC<BusinessRuleDetailsProps> = ({
         >
           Detalles de la regla
         </h2>
-        <Button
+        {/* <Button
           onClick={() => console.log("Exportar regla")}
           className="font-semibold"
           style={{
@@ -90,7 +90,7 @@ export const BusinessRuleDetails: React.FC<BusinessRuleDetailsProps> = ({
           }}
         >
           Exportar
-        </Button>
+        </Button> */}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -105,7 +105,7 @@ export const BusinessRuleDetails: React.FC<BusinessRuleDetailsProps> = ({
             style={{ background: SecondaryColors.background_3 }}
           />
         </div>
-        <div className="flex flex-col">
+        {/* <div className="flex flex-col">
           <p className="font-bold" style={{ color: SecondaryColors.dark_gray }}>
             Empresa:
           </p>
@@ -115,7 +115,7 @@ export const BusinessRuleDetails: React.FC<BusinessRuleDetailsProps> = ({
             onChange={(e) => setEditedCompany(e.target.value)}
             style={{ background: SecondaryColors.background_3 }}
           />
-        </div>
+        </div> */}
       </div>
 
       {/* Campos dinámicos - itera sobre las claves del objeto */}

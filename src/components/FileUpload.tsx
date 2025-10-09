@@ -20,7 +20,7 @@ interface FileUploadProps {
 const FileUpload: React.FC<FileUploadProps> = ({
   layout = "vertical",
   uploadMode = "single",
-  defaultText = "Select or drag and drop your files here",
+  defaultText = "Selecciona o arrastra los archivos de pago aquí",
   otherText = "(PDF, DOC, DOCX, CSV, XML, TXT up to 20MB)",
   maxSize = 20 * 1024 * 1024, // 20MB
   acceptedFileTypes = {

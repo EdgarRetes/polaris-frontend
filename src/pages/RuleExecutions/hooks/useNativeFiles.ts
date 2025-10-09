@@ -6,11 +6,10 @@ import { getLayoutFields } from "@/services/layoutFieldsService";
 import { getLayoutValueByFileId } from "@/services/layoutValuesService";
 
 interface UseNativeFileDetailsProps {
-    fileId: number;
+    file: NativeFile; 
 }
 
-export const useNativeFileDetails = ({ fileId }: UseNativeFileDetailsProps) => {
-    const [file, setFile] = useState<NativeFile | null>(null);
+export const useNativeFileDetails = ({ file }: UseNativeFileDetailsProps) => {
     const [layoutFields, setLayoutFields] = useState<LayoutField[]>([]);
     const [layoutValues, setLayoutValues] = useState<LayoutValue[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
@@ -23,7 +22,7 @@ export const useNativeFileDetails = ({ fileId }: UseNativeFileDetailsProps) => {
                 const fieldsResponse = await getLayoutFields();
                 setLayoutFields(fieldsResponse);
 
-                const valuesResponse = await getLayoutValueByFileId(fileId);
+                const valuesResponse = await getLayoutValueByFileId(file.id); 
                 setLayoutValues(valuesResponse);
             } catch (err: any) {
                 setError(err.message || "Error al cargar los detalles del archivo");
@@ -33,7 +32,7 @@ export const useNativeFileDetails = ({ fileId }: UseNativeFileDetailsProps) => {
         };
 
         fetchFileDetails();
-    }, [fileId]);
+    }, [file]);
 
-    return { file, layoutFields, layoutValues, loading, error };
+    return { fetchedFile: file, layoutFields, layoutValues, loading, error };
 };

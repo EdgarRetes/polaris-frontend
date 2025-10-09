@@ -2,7 +2,9 @@ import {
   ColumnDef,
   ColumnFiltersState,
   flexRender,
+  SortingState,
   getFilteredRowModel,
+  getSortedRowModel,
   getCoreRowModel,
   useReactTable,
 } from "@tanstack/react-table";
@@ -47,14 +49,22 @@ export function RuleExecutionDataTable<TData extends FileRow, TValue>({
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
   );
+  const [sorting, setSorting] = React.useState<SortingState>([
+    {
+      id: "executedAt",
+      desc: true,
+    },
+  ]);
 
   const table = useReactTable({
     data,
     columns,
     onColumnFiltersChange: setColumnFilters,
+    onSortingChange: setSorting,
     getFilteredRowModel: getFilteredRowModel(),
+    getSortedRowModel: getSortedRowModel(),
     getCoreRowModel: getCoreRowModel(),
-    state: { columnFilters },
+    state: { columnFilters, sorting },
   });
 
   return (
@@ -62,7 +72,9 @@ export function RuleExecutionDataTable<TData extends FileRow, TValue>({
       <div className="flex items-center py-4 px-2 gap-x-2">
         <Input
           placeholder="Archivo..."
-          value={(table.getColumn("fileName")?.getFilterValue() as string) ?? ""}
+          value={
+            (table.getColumn("fileName")?.getFilterValue() as string) ?? ""
+          }
           onChange={(event) =>
             table.getColumn("fileName")?.setFilterValue(event.target.value)
           }
@@ -106,7 +118,10 @@ export function RuleExecutionDataTable<TData extends FileRow, TValue>({
                 >
                   {header.isPlaceholder
                     ? null
-                    : flexRender(header.column.columnDef.header, header.getContext())}
+                    : flexRender(
+                        header.column.columnDef.header,
+                        header.getContext()
+                      )}
                 </TableHead>
               ))}
             </TableRow>
@@ -136,7 +151,7 @@ export function RuleExecutionDataTable<TData extends FileRow, TValue>({
           ) : (
             <TableRow>
               <TableCell colSpan={columns.length} className="h-24 text-center">
-                No results.
+                No hay datos por ahora.
               </TableCell>
             </TableRow>
           )}

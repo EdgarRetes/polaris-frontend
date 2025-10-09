@@ -54,7 +54,7 @@ export const BusinessRuleForm: React.FC<BusinessRuleFormProps> = ({
 
   /** PREPARAR: solo obtiene los datos, no toca la BD */
   const handlePrepare = async () => {
-    if (!name.trim() || !company.trim()) return;
+    if (!name.trim()) return;
 
     setLoading(true);
     try {
@@ -82,7 +82,7 @@ export const BusinessRuleForm: React.FC<BusinessRuleFormProps> = ({
 
       if (inputMode === "file") {
         if (!file) return;
-
+        
         const parsedData = await parseFile(file);
         const aiResponse = await getAIJsonFromFile(parsedData);
         if (!aiResponse) return;
@@ -92,6 +92,7 @@ export const BusinessRuleForm: React.FC<BusinessRuleFormProps> = ({
         if (!prompt.trim()) return;
 
         const aiResponse = await getAIJsonFromFile(prompt);
+        console.log(aiResponse)
         if (!aiResponse) return;
 
         definition = aiResponse.map(processEntry);
@@ -163,13 +164,13 @@ export const BusinessRuleForm: React.FC<BusinessRuleFormProps> = ({
           onChange={(e) => setName(e.target.value)}
           style={{ background: SecondaryColors.background_2 }}
         />
-        <Input
+        {/* <Input
           className="border-0"
           placeholder="Compañía"
           value={company}
           onChange={(e) => setCompany(e.target.value)}
           style={{ background: SecondaryColors.background_2 }}
-        />
+        /> */}
         <DropdownMenu>
           <DropdownMenuTrigger className="flex items-center gap-2 rounded-md p-2">
             <span>{status}</span>
@@ -266,13 +267,14 @@ export const BusinessRuleForm: React.FC<BusinessRuleFormProps> = ({
             <Input
               placeholder="Nombre"
               value={pendingRule.name}
+              className="border-gray-200"
               onChange={(e) =>
                 setPendingRule((prev) =>
                   prev ? { ...prev, name: e.target.value } : prev
                 )
               }
             />
-            <Input
+            {/* <Input
               placeholder="Compañía"
               value={pendingRule.company}
               onChange={(e) =>
@@ -280,12 +282,12 @@ export const BusinessRuleForm: React.FC<BusinessRuleFormProps> = ({
                   prev ? { ...prev, company: e.target.value } : prev
                 )
               }
-            />
+            /> */}
             <div className="max-h-60 overflow-auto p-2 space-y-2">
               {pendingRule.definition.map((entry, idx) => (
-                <div key={idx} className="border-b pb-2 mb-2">
+                <div key={idx} className="pb-2 mb-2">
                   {Object.entries(entry).map(([field, value], i) => (
-                    <div key={i} className="flex items-center gap-2 w-full">
+                    <div key={i} className="flex items-center gap-2 w-full py-1">
                       <span className="font-medium w-48">{field}:</span>
                       <Input
                         value={value}
@@ -298,7 +300,7 @@ export const BusinessRuleForm: React.FC<BusinessRuleFormProps> = ({
                             return { ...prev, definition: newDef };
                           });
                         }}
-                        className="flex-1"
+                        className="flex-1 border-gray-200"
                       />
                     </div>
                   ))}

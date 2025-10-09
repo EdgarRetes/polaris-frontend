@@ -10,6 +10,9 @@ import { BusinessRulesDataTable } from "@/pages/BusinessRules/components/DataTab
 import { columns } from "../../BusinessRules/components/Columns";
 import { useRuleExecutions } from "../hooks/useRuleExcecutions";
 import { ConfirmModal } from "@/components/ConfirmModal";
+import { FileStore } from "@/utils/fileStore";
+import { uploadFile, getFiles, removeFile } from "@/services/fileStoreService";
+import { validateLayout } from "@/services/layoutValuesService";
 
 import { PrimaryColors, SecondaryColors } from "@/helpers/colors";
 
@@ -47,7 +50,7 @@ export const NativeFilesForm: React.FC<NativeFileFormProps> = ({
 
   const [inputMode, setInputMode] = useState<"rule" | "file">("rule");
   const [prompt, setPrompt] = useState("");
-  const [file, setFile] = useState<File | null>(null);
+  const [files, setFiles] = useState<File[]>([]);
   const [loading, setLoading] = useState(false);
 
   const [showConfirm, setShowConfirm] = useState(false);
@@ -62,28 +65,24 @@ export const NativeFilesForm: React.FC<NativeFileFormProps> = ({
     saveConfirmedFile,
     prepareFileMapping,
     createNewRuleExecution,
+    saveFileMultiple,
   } = useRuleExecutions();
 
-  const handleSubmit = async () => {
+  const processSingleFile = async (file: File) => {
     if (!file) return;
 
     try {
-      setLoading(true);
-
       const parsed = await parseFile(file);
+      let mappedData = parsed.map((row) => mapRowToDto(row));
 
       if (inputMode === "rule") {
         if (selectedRuleId !== null) {
           const ruleJson = await getRuleJson(selectedRuleId);
-          const mappedData = parsed.map((row) => mapRowToDto(row));
-        
-
           const prepared = await prepareFileMapping(mappedData, ruleJson);
 
           setPendingData({
             ...prepared,
             name,
-            // company,
             ruleId: selectedRuleId,
           });
           setShowConfirm(true);
@@ -91,20 +90,101 @@ export const NativeFilesForm: React.FC<NativeFileFormProps> = ({
           console.warn("No hay regla seleccionada");
         }
       } else if (inputMode === "file") {
-        const mappedData = parsed.map((row) => mapRowToDto(row));
-
         const prepared = await prepareFileMapping(mappedData, []);
-
         setPendingData({
           ...prepared,
           name,
-          // company,
           ruleId: null,
         });
         setShowConfirm(true);
       }
     } catch (err) {
-      console.error("Error processing file:", err);
+      console.error("Error procesando archivo:", err);
+    }
+  };
+
+  const processMultipleFile = async (file: File, ruleId?: number) => {
+    if (!file) return;
+    try {
+      const newFile = await saveFileMultiple(file.name, 1);
+
+      if (!newFile) return;
+
+      const execution = await createNewRuleExecution(newFile.id, ruleId);
+      await uploadFile(file, execution);
+    } catch (err) {
+      console.error("Error procesando archivo múltiple:", err);
+    }
+  };
+
+  const createLayoutValuesAsync = async () => {
+    const filesToProcess = await getFiles();
+    for (const f of filesToProcess) {
+      try {
+        const parsed = await parseFile(f.file);
+        let mappedData = parsed.map((row) => mapRowToDto(row));
+
+        if (f.execution?.ruleId) {
+          const selectedRuleId = f.execution?.ruleId;
+          if (selectedRuleId !== null) {
+            const ruleJson = await getRuleJson(selectedRuleId);
+            const prepared = await prepareFileMapping(mappedData, ruleJson);
+            await saveConfirmedFile(
+              {
+                ...prepared,
+                name,
+                ruleId: f.execution?.ruleId ?? null,
+              },
+              1,
+              true,
+              f.execution.fileId
+            );
+          }
+        } else {
+          const prepared = await prepareFileMapping(mappedData, []);
+          await saveConfirmedFile(
+            {
+              ...prepared,
+              name,
+              ruleId: f.execution?.ruleId ?? null,
+            },
+            1,
+            true,
+            f.execution?.fileId
+          );
+        }
+        if (f.execution) {
+          await validateLayout(f.execution.fileId);
+        }
+        await removeFile(f.id);
+      } catch (err) {
+        console.error("Error creando LayoutValues:", err);
+      }
+    }
+  };
+
+  const handleSubmit = async () => {
+    if (files.length === 0) return;
+
+    setLoading(true);
+
+    try {
+      if (files.length === 1) {
+        const file = files[0];
+        await processSingleFile(file);
+      } else {
+        await Promise.all(files.map((file) => processMultipleFile(file)));
+        setName("");
+        setCompany("");
+        setPrompt("");
+        setFiles([]);
+        setInputMode("rule");
+        setPendingData(null);
+        onCancel();
+        await createLayoutValuesAsync();
+      }
+    } catch (err) {
+      console.error("Error procesando archivos:", err);
     } finally {
       setLoading(false);
     }
@@ -115,20 +195,22 @@ export const NativeFilesForm: React.FC<NativeFileFormProps> = ({
 
     setLoading(true);
     try {
-      const newFile = await saveConfirmedFile(pendingData, 1);
+      const newFile = await saveConfirmedFile(pendingData, 1, false);
 
       if (newFile) {
         await createNewRuleExecution(
           newFile.id,
           pendingData.ruleId ?? undefined
         );
+        // console.log(newFile)
+        await validateLayout(newFile.id);
       }
 
       // 🔹 Reset después de crear
       setName("");
       setCompany("");
       setPrompt("");
-      setFile(null);
+      setFiles([]);
       setInputMode("rule");
       setPendingData(null);
       onCancel();
@@ -150,7 +232,7 @@ export const NativeFilesForm: React.FC<NativeFileFormProps> = ({
         className="text-xl font-semibold"
         style={{ color: SecondaryColors.dark_gray }}
       >
-        Procesar archivo
+        Procesar archivos
       </h2>
 
       {/* --- Datos básicos --- */}
@@ -162,13 +244,13 @@ export const NativeFilesForm: React.FC<NativeFileFormProps> = ({
           onChange={(e) => setName(e.target.value)}
           style={{ background: SecondaryColors.background_2 }}
         />
-        <Input
+        {/* <Input
           className="border-0"
           placeholder="Compañía"
           value={company}
           onChange={(e) => setCompany(e.target.value)}
           style={{ background: SecondaryColors.background_2 }}
-        />
+        /> */}
       </div>
 
       {/* --- Selector --- */}
@@ -181,10 +263,13 @@ export const NativeFilesForm: React.FC<NativeFileFormProps> = ({
           <TabsTrigger value="file">Procesar Nuevo</TabsTrigger>
         </TabsList>
         <FileUpload
-          uploadMode="single"
-          onFilesUploaded={(files) =>
-            setFile(Array.isArray(files) ? files[0] : files)
-          }
+          uploadMode="multi"
+          onFilesUploaded={(uploadedFiles) => {
+            const validFiles = (
+              Array.isArray(uploadedFiles) ? uploadedFiles : [uploadedFiles]
+            ).filter((f): f is File => f !== null);
+            setFiles(validFiles);
+          }}
         />
 
         <TabsContent value="rule">
@@ -229,6 +314,7 @@ export const NativeFilesForm: React.FC<NativeFileFormProps> = ({
           <div className="space-y-3">
             <Input
               placeholder="Nombre"
+              className="border-gray-100"
               value={pendingData?.name || ""}
               onChange={(e) =>
                 setPendingData((prev) =>
@@ -236,7 +322,7 @@ export const NativeFilesForm: React.FC<NativeFileFormProps> = ({
                 )
               }
             />
-            <Input
+            {/* <Input
               placeholder="Compañía"
               value={pendingData?.company || ""}
               onChange={(e) =>
@@ -244,7 +330,7 @@ export const NativeFilesForm: React.FC<NativeFileFormProps> = ({
                   prev ? { ...prev, company: e.target.value } : prev
                 )
               }
-            />
+            /> */}
 
             {/* Vista previa editable de filas con fieldName al lado */}
             <div className="max-h-60 overflow-auto unded p-2 space-y-2">
@@ -260,6 +346,7 @@ export const NativeFilesForm: React.FC<NativeFileFormProps> = ({
                         <Input
                           value={v.value}
                           placeholder={v.fieldName}
+                          className="border-gray-100"
                           onChange={(e) => {
                             const newValue = e.target.value;
                             setPendingData((prev) => {

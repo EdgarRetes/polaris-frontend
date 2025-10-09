@@ -5,33 +5,34 @@ import { NativeFileDetails } from "./components/NativeFileDetails";
 import { columns } from "./components/Columns";
 import { useRuleExecutions } from "./hooks/useRuleExcecutions";
 import { SecondaryColors } from "@/helpers/colors";
-import RuleExecution from "@/types/RuleExecutionDto";
 import NativeFile from "@/types/NativeFileDto";
 import type { RuleExecutionWithFile } from "./components/Columns";
 
-export default function RuleExcutions() {
-  const { data, isFormOpen, openForm, closeForm } = useRuleExecutions();
+export default function RuleExecutions() {
+  const { data, isFormOpen, openForm, closeForm, refetchExecutions } = useRuleExecutions();
 
   // Estado para el archivo seleccionado
   const [selectedFile, setSelectedFile] = useState<NativeFile | null>(null);
 
+  // Maneja clic en la fila de la tabla
   const handleRowClick = (fileId: string) => {
-    const execution = data.find((d) => d.fileId.toString() === fileId);
+    const execution: any = data.find((d) => d.fileId.toString() === fileId);
     if (execution) {
       const file: NativeFile = {
         id: execution.fileId,
-        name: `${execution.fileId}`,
-        // company: "N/A"
-        // createdAt: new Date().toISOString(),
-        // status: execution.status || "Pendiente",
+        name: execution.file?.name || `${execution.fileId}`,
+        // company: execution.file?.company || "N/A",
       };
       setSelectedFile(file);
     }
   };
 
-  const handleCloseDetails = () => {
-    setSelectedFile(null);
-  };
+  // Cierra el detalle del archivo
+const handleCloseDetails = async () => {
+  setSelectedFile(null);
+  await refetchExecutions();
+};
+
 
   return (
     <div
@@ -49,7 +50,7 @@ export default function RuleExcutions() {
         <NativeFilesForm onSubmit={openForm} onCancel={closeForm} />
       ) : selectedFile ? (
         <NativeFileDetails
-          fileId={selectedFile.id}
+          file={selectedFile}
           onClose={handleCloseDetails}
         />
       ) : (
@@ -57,7 +58,7 @@ export default function RuleExcutions() {
           columns={columns}
           data={data as RuleExecutionWithFile[]}
           onOpenForm={openForm}
-          onRowClick={handleRowClick}
+          onRowClick={handleRowClick} 
         />
       )}
     </div>
