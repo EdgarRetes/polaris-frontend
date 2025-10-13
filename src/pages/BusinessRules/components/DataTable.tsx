@@ -1,4 +1,4 @@
-import { useLocation } from "react-router-dom"; // <--- Importamos
+import { useLocation } from "react-router-dom";
 import { ConfirmModal } from "@/components/ConfirmModal";
 import * as React from "react";
 import {
@@ -8,6 +8,7 @@ import {
   getFilteredRowModel,
   getCoreRowModel,
   useReactTable,
+  getPaginationRowModel,
 } from "@tanstack/react-table";
 import {
   Table,
@@ -24,7 +25,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ChevronDown, Trash } from "lucide-react";
+import { ChevronDown, Trash, ChevronLeft, ChevronRight } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { PrimaryColors, SecondaryColors } from "@/helpers/colors";
 
@@ -76,6 +77,13 @@ export function BusinessRulesDataTable<
     onRowSelectionChange: setRowSelection,
     getFilteredRowModel: getFilteredRowModel(),
     getCoreRowModel: getCoreRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    initialState: {
+      pagination: {
+        pageIndex: 0,
+        pageSize: 9,
+      },
+    },
   });
 
   const handleConfirmDelete = async () => {
@@ -86,147 +94,183 @@ export function BusinessRulesDataTable<
   };
 
   return (
-    <div className="overflow-hidden">
-      <div className="flex items-center py-4 px-2 gap-x-2">
-        {/* Input y dropdowns */}
-        <Input
-          placeholder="Nombre..."
-          value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
-          onChange={(event) =>
-            table.getColumn("name")?.setFilterValue(event.target.value)
-          }
-          className="max-w-sm border-0"
-          style={{
-            backgroundColor: SecondaryColors.background,
-            color: SecondaryColors.content_2,
-          }}
-        />
+    <div>
+      <div className="overflow-hidden">
+        <div className="flex items-center py-4 px-2 gap-x-2">
+          {/* Input y dropdowns */}
+          <Input
+            placeholder="Nombre..."
+            value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
+            onChange={(event) =>
+              table.getColumn("name")?.setFilterValue(event.target.value)
+            }
+            className="max-w-sm border-0"
+            style={{
+              backgroundColor: SecondaryColors.background,
+              color: SecondaryColors.content_2,
+            }}
+          />
 
-        {/* Botón agregar solo si estamos en /business-rules */}
-        {showActions && (
-          <div
-            className="rounded-lg align-right ml-auto"
-            style={{ background: PrimaryColors.red }}
-          >
-            <Button
-              className="font-bold"
-              onClick={onOpenForm}
-              style={{ color: SecondaryColors.background_3 }}
+          {/* Botón agregar solo si estamos en /business-rules */}
+          {showActions && (
+            <div
+              className="rounded-lg align-right ml-auto"
+              style={{ background: PrimaryColors.red }}
             >
-              Agregar Regla
-            </Button>
-          </div>
-        )}
-      </div>
-
-      {/* Tabla */}
-      <Table
-        className="rounded-md border"
-        style={{ borderColor: SecondaryColors.content_4 }}
-      >
-        <TableHeader
-          style={{ backgroundColor: SecondaryColors.content_5 }}
-          className="text-xl"
-        >
-          {table.getHeaderGroups().map((headerGroup) => (
-            <TableRow
-              key={headerGroup.id}
-              style={{ borderColor: SecondaryColors.content_3 }}
-            >
-              {headerGroup.headers.map((header) => (
-                <TableHead
-                  key={header.id}
-                  className="font-bold"
-                  style={{ color: SecondaryColors.dark_gray }}
-                >
-                  {header.isPlaceholder
-                    ? null
-                    : flexRender(
-                        header.column.columnDef.header,
-                        header.getContext()
-                      )}
-                </TableHead>
-              ))}
-              {showActions && (
-                <TableHead
-                  className="font-bold"
-                  style={{ color: SecondaryColors.dark_gray }}
-                >
-                  Acciones
-                </TableHead>
-              )}
-            </TableRow>
-          ))}
-        </TableHeader>
-
-        <TableBody>
-          {table.getRowModel().rows.length ? (
-            table.getRowModel().rows.map((row) => (
-              <TableRow
-                key={row.id}
-                data-state={row.getIsSelected() && "selected"}
-                style={{
-                  borderColor: SecondaryColors.content_3,
-                  backgroundColor: row.getIsSelected()
-                    ? PrimaryColors.red
-                    : SecondaryColors.background_2,
-                  color: row.getIsSelected()
-                    ? SecondaryColors.background_3
-                    : SecondaryColors.dark_gray,
-                  cursor: "pointer",
-                }}
-                onClick={() => onRowClick?.(row.original.id)}
+              <Button
+                className="font-bold"
+                onClick={onOpenForm}
+                style={{ color: SecondaryColors.background_3 }}
               >
-                {row.getVisibleCells().map((cell) => (
-                  <TableCell key={cell.id}>
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </TableCell>
-                ))}
+                Agregar Regla
+              </Button>
+            </div>
+          )}
+        </div>
 
+        {/* Tabla */}
+        <Table
+          className="rounded-md border"
+          style={{ borderColor: SecondaryColors.content_4 }}
+        >
+          <TableHeader
+            style={{ backgroundColor: SecondaryColors.content_5 }}
+            className="text-xl"
+          >
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow
+                key={headerGroup.id}
+                style={{ borderColor: SecondaryColors.content_3 }}
+              >
+                {headerGroup.headers.map((header) => (
+                  <TableHead
+                    key={header.id}
+                    className="font-bold"
+                    style={{ color: SecondaryColors.dark_gray }}
+                  >
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
+                  </TableHead>
+                ))}
                 {showActions && (
-                  <TableCell>
-                    <Button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setSelectedRowId(row.original.id);
-                        setModalOpen(true);
-                      }}
-                      style={{
-                        background: PrimaryColors.red,
-                        color: SecondaryColors.background_3,
-                      }}
-                      className="font-semibold"
-                    >
-                      <Trash />
-                    </Button>
-                  </TableCell>
+                  <TableHead
+                    className="font-bold"
+                    style={{ color: SecondaryColors.dark_gray }}
+                  >
+                    Acciones
+                  </TableHead>
                 )}
               </TableRow>
-            ))
-          ) : (
-            <TableRow>
-              <TableCell
-                colSpan={columns.length + (showActions ? 1 : 0)}
-                className="h-24 text-center"
-              >
-                No hay datos por ahora.
-              </TableCell>
-            </TableRow>
-          )}
-        </TableBody>
-      </Table>
+            ))}
+          </TableHeader>
 
-      {/* Modal */}
-      {showActions && (
-        <ConfirmModal
-          isOpen={modalOpen}
-          title="Borrar registro"
-          onCancel={() => setModalOpen(false)}
-          onConfirm={handleConfirmDelete}
-        >
-          ¿Deseas borrar la regla {selectedRowId}?
-        </ConfirmModal>
-      )}
+          <TableBody>
+            {table.getRowModel().rows.length ? (
+              table.getRowModel().rows.map((row) => (
+                <TableRow
+                  key={row.id}
+                  data-state={row.getIsSelected() && "selected"}
+                  style={{
+                    borderColor: SecondaryColors.content_3,
+                    backgroundColor: row.getIsSelected()
+                      ? PrimaryColors.red
+                      : SecondaryColors.background_2,
+                    color: row.getIsSelected()
+                      ? SecondaryColors.background_3
+                      : SecondaryColors.dark_gray,
+                    cursor: "pointer",
+                  }}
+                  onClick={() => onRowClick?.(row.original.id)}
+                >
+                  {row.getVisibleCells().map((cell) => (
+                    <TableCell key={cell.id}>
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext()
+                      )}
+                    </TableCell>
+                  ))}
+
+                  {showActions && (
+                    <TableCell>
+                      <Button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedRowId(row.original.id);
+                          setModalOpen(true);
+                        }}
+                        style={{
+                          background: PrimaryColors.red,
+                          color: SecondaryColors.background_3,
+                        }}
+                        className="font-semibold"
+                      >
+                        <Trash />
+                      </Button>
+                    </TableCell>
+                  )}
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell
+                  colSpan={columns.length + (showActions ? 1 : 0)}
+                  className="h-24 text-center"
+                >
+                  No hay datos por ahora.
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+        <div className="flex items-center justify-end space-x-2 py-4">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => table.previousPage()}
+            disabled={!table.getCanPreviousPage()}
+            style={{
+              backgroundColor: SecondaryColors.content_5,
+              color: SecondaryColors.dark_gray,
+              border: `1px solid ${SecondaryColors.content_4}`,
+              opacity: table.getCanPreviousPage() ? 1 : 0.5,
+            }}
+            className="font-semibold hover:opacity-90"
+          >
+            <ChevronLeft/>
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => table.nextPage()}
+            disabled={!table.getCanNextPage()}
+            style={{
+              backgroundColor: PrimaryColors.red,
+              color: SecondaryColors.background_3,
+              border: `1px solid ${PrimaryColors.red}`,
+              opacity: table.getCanNextPage() ? 1 : 0.5,
+            }}
+            className="font-semibold hover:opacity-90"
+          >
+            <ChevronRight/>
+          </Button>
+        </div>
+        {/* Modal */}
+        {showActions && (
+          <ConfirmModal
+            isOpen={modalOpen}
+            title="Borrar registro"
+            onCancel={() => setModalOpen(false)}
+            onConfirm={handleConfirmDelete}
+          >
+            ¿Deseas borrar la regla {selectedRowId}?
+          </ConfirmModal>
+        )}
+      </div>
     </div>
   );
 }

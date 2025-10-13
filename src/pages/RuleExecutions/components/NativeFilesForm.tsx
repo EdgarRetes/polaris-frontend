@@ -333,16 +333,22 @@ export const NativeFilesForm: React.FC<NativeFileFormProps> = ({
             /> */}
 
             {/* Vista previa editable de filas con fieldName al lado */}
-            <div className="max-h-60 overflow-auto unded p-2 space-y-2">
+            <div className="max-h-60 overflow-auto p-2 space-y-2">
               {pendingData?.mappedRows.map((row, rowIndex) => (
-                <div key={row.row} className="py-1">
-                  {/* <p className="font-semibold mb-1">Fila {row.row}</p> */}
+                <div key={row.row} className="py-1 border-b border-gray-200">
+                  {/* Indicador de fila */}
+                  <p
+                    className="font-semibold mb-1"
+                    style={{ color: SecondaryColors.dark_gray }}
+                  >
+                    Fila {rowIndex + 1}:
+                  </p>
+
+                  {/* Campos de la fila */}
                   <div className="ml-2 space-y-1">
                     {row.values.map((v, valueIndex) => (
                       <div key={valueIndex} className="flex items-center gap-2">
-                        <span className="w-32 font-medium mr-3">
-                          {v.fieldName}:
-                        </span>
+                        <span className="w-32 font-medium">{v.fieldName}:</span>
                         <Input
                           value={v.value}
                           placeholder={v.fieldName}

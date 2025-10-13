@@ -33,12 +33,12 @@ export const columns = (setRowSelection: React.Dispatch<React.SetStateAction<Rec
     accessorKey: "name",
     header: "Nombre",
   },
-  {
-    accessorKey: "company",
-    header: "Empresa",
-  },
-  {
-    accessorKey: "status",
-    header: "Status",
-  },
+  // {
+  //   accessorKey: "company",
+  //   header: "Empresa",
+  // },
+  // {
+  //   accessorKey: "status",
+  //   header: "Status",
+  // },
 ];

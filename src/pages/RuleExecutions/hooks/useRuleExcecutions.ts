@@ -76,7 +76,7 @@ export function useRuleExecutions(initialData: RuleExecution[] = []) {
     const filename = file.name || file.originalname;
     const ext = filename?.split(".").pop()?.toLowerCase();
 
-    if (!ext || !["pdf", "csv", "doc", "docx", "xml"].includes(ext)) {
+    if (!ext || !["pdf", "csv", "doc", "docx", "xml", "txt"].includes(ext)) {
       console.error("Extensión no soportada:", filename);
       return [];
     }

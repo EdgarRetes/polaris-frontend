@@ -97,9 +97,9 @@ export const BusinessRuleForm: React.FC<BusinessRuleFormProps> = ({
 
         definition = aiResponse.map(processEntry);
       }
-
       // SOLO prepara la regla para el modal
       setPendingRule({ name, company, status, definition });
+
       setShowConfirm(true);
     } catch (err) {
       console.error("Error preparando la regla:", err);
@@ -171,7 +171,7 @@ export const BusinessRuleForm: React.FC<BusinessRuleFormProps> = ({
           onChange={(e) => setCompany(e.target.value)}
           style={{ background: SecondaryColors.background_2 }}
         /> */}
-        <DropdownMenu>
+        {/* <DropdownMenu>
           <DropdownMenuTrigger className="flex items-center gap-2 rounded-md p-2">
             <span>{status}</span>
             <ChevronDown className="w-3 h-3" />
@@ -193,7 +193,7 @@ export const BusinessRuleForm: React.FC<BusinessRuleFormProps> = ({
               Borrador
             </DropdownMenuItem>
           </DropdownMenuContent>
-        </DropdownMenu>
+        </DropdownMenu> */}
       </div>
 
       {/* Tabs entrada IA */}

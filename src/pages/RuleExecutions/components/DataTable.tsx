@@ -7,6 +7,7 @@ import {
   getSortedRowModel,
   getCoreRowModel,
   useReactTable,
+  getPaginationRowModel,
 } from "@tanstack/react-table";
 
 import {
@@ -27,6 +28,8 @@ import {
   SecondaryColors,
   AdditionalColors,
 } from "@/helpers/colors";
+
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 // Tipado que asegura que cada fila tiene fileId
 interface FileRow {
@@ -65,6 +68,13 @@ export function RuleExecutionDataTable<TData extends FileRow, TValue>({
     getSortedRowModel: getSortedRowModel(),
     getCoreRowModel: getCoreRowModel(),
     state: { columnFilters, sorting },
+    getPaginationRowModel: getPaginationRowModel(),
+    initialState: {
+      pagination: {
+        pageIndex: 0,
+        pageSize: 9,
+      },
+    },
   });
 
   return (
@@ -157,6 +167,38 @@ export function RuleExecutionDataTable<TData extends FileRow, TValue>({
           )}
         </TableBody>
       </Table>
+        <div className="flex items-center justify-end space-x-2 py-4">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => table.previousPage()}
+                  disabled={!table.getCanPreviousPage()}
+                  style={{
+                    backgroundColor: SecondaryColors.content_5,
+                    color: SecondaryColors.dark_gray,
+                    border: `1px solid ${SecondaryColors.content_4}`,
+                    opacity: table.getCanPreviousPage() ? 1 : 0.5,
+                  }}
+                  className="font-semibold hover:opacity-90"
+                >
+                  <ChevronLeft/>
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => table.nextPage()}
+                  disabled={!table.getCanNextPage()}
+                  style={{
+                    backgroundColor: PrimaryColors.red,
+                    color: SecondaryColors.background_3,
+                    border: `1px solid ${PrimaryColors.red}`,
+                    opacity: table.getCanNextPage() ? 1 : 0.5,
+                  }}
+                  className="font-semibold hover:opacity-90"
+                >
+                  <ChevronRight/>
+                </Button>
+              </div>
     </div>
   );
 }

@@ -2,10 +2,13 @@ import { ColumnDef } from "@tanstack/react-table";
 import RuleExecutions from "@/types/RuleExecutionDto";
 import { Badge } from "@/components/ui/badge";
 
-export type RuleExecutionWithFile = RuleExecutions & {
+export type RuleExecutionExtended = RuleExecutions & {
   file: {
     name?: string;
   };
+  rule: {
+    name?: string;
+  }
   executedAt?: Date | string;
 };
 
@@ -16,16 +19,16 @@ const statusMap: Record<string, { label: string; colorClass: string }> = {
   IN_PROGRESS: { label: "En progreso", colorClass: "bg-yellow-500 text-white" },
 };
 
-export const columns: ColumnDef<RuleExecutionWithFile>[] = [
+export const columns: ColumnDef<RuleExecutionExtended>[] = [
   {
     id: "fileName",
     header: "Archivo",
     accessorFn: (row) => row.file.name?.trim() || `Archivo #${row.fileId}`,
   },
   {
-    accessorKey: "rule.name",
     id: "ruleName",
-    header: "Regla",
+    header: "Rule",
+    accessorFn: (row) => row.rule?.name?.trim() || `NA`,
   },
   {
     accessorKey: "status",
