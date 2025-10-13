@@ -106,7 +106,6 @@ export const NativeFilesForm: React.FC<NativeFileFormProps> = ({
     try {
       const newFile = await saveFileMultiple(file.name, 1);
       if (!newFile) return;
-      console.log("rule upload", ruleId)
       const execution = await createNewRuleExecution(newFile.id, ruleId);
       await uploadFile(file, execution);
     } catch (err) {
@@ -208,7 +207,6 @@ export const NativeFilesForm: React.FC<NativeFileFormProps> = ({
       if (files.length === 1) {
         await processSingleFile(files[0]);
       } else {
-        console.log("rule submit", selectedRuleId)
         await Promise.all(files.map((file) => processMultipleFile(file, selectedRuleId)));
         setName("");
         setCompany("");
