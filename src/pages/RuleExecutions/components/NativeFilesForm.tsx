@@ -140,7 +140,7 @@ export const NativeFilesForm: React.FC<NativeFileFormProps> = ({
         });
         console.log(`Archivo ${f.id} mapeado correctamente. Datos:`, mappedData);
 
-        const ruleId: number | undefined = f.execution?.ruleId ?? undefined;
+        const ruleId: number | undefined = (f.execution as any)?.rule?.id ?? undefined;
 
         if (ruleId !== undefined) {
           console.log("Archivo tiene ruleId:", ruleId);
