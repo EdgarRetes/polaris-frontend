@@ -119,6 +119,7 @@ export const NativeFilesForm: React.FC<NativeFileFormProps> = ({
 
   const createLayoutValuesAsync = async () => {
     const filesToProcess = await getFiles();
+    console.log(filesToProcess)
     for (const f of filesToProcess) {
       try {
         const parsed = await parseFile(f.file);
