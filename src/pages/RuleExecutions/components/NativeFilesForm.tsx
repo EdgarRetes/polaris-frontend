@@ -119,49 +119,95 @@ export const NativeFilesForm: React.FC<NativeFileFormProps> = ({
 
   const createLayoutValuesAsync = async () => {
     const filesToProcess = await getFiles();
-    console.log(filesToProcess)
+    console.log(
+      "Files to process:",
+      filesToProcess.length,
+      filesToProcess.map((f) => f.id)
+    );
+
     for (const f of filesToProcess) {
+      console.log("\n--- Procesando archivo:", f.id, " ---");
       try {
+        console.log("Archivo original:", f.file);
         const parsed = await parseFile(f.file);
-        let mappedData = parsed.map((row) => mapRowToDto(row));
+        console.log(
+          `Archivo ${f.id} parseado correctamente. Filas:`,
+          parsed.length
+        );
+
+        let mappedData = parsed.map((row, idx) => {
+          try {
+            return mapRowToDto(row);
+          } catch (err) {
+            console.error(
+              `Error mapeando fila ${idx} del archivo ${f.id}:`,
+              row,
+              err
+            );
+            throw err; // relanza para que caiga en el catch principal
+          }
+        });
+        console.log(
+          `Archivo ${f.id} mapeado correctamente. Datos:`,
+          mappedData
+        );
 
         if (f.execution?.ruleId) {
-          const selectedRuleId = f.execution?.ruleId;
-          if (selectedRuleId !== null) {
-            const ruleJson = await getRuleJson(selectedRuleId);
-            const prepared = await prepareFileMapping(mappedData, ruleJson);
-            await saveConfirmedFile(
-              {
-                ...prepared,
-                name,
-                ruleId: f.execution?.ruleId ?? null,
-              },
-              1,
-              true,
-              f.execution.fileId
-            );
-          }
-        } else {
-          const prepared = await prepareFileMapping(mappedData, []);
+          console.log("Archivo tiene ruleId:", f.execution.ruleId);
+          const selectedRuleId = f.execution.ruleId;
+          const ruleJson = await getRuleJson(selectedRuleId);
+          console.log("Regla obtenida:", ruleJson);
+
+          const prepared = await prepareFileMapping(mappedData, ruleJson);
+          console.log("Archivo preparado con regla:", prepared);
+
           await saveConfirmedFile(
             {
               ...prepared,
               name,
-              ruleId: f.execution?.ruleId ?? null,
+              ruleId: selectedRuleId,
+            },
+            1,
+            true,
+            f.execution.fileId
+          );
+          console.log(`Archivo ${f.id} guardado con regla.`);
+        } else {
+          console.log("Archivo sin ruleId, se procesa como nuevo");
+          const prepared = await prepareFileMapping(mappedData, []);
+          console.log("Archivo preparado sin regla:", prepared);
+
+          await saveConfirmedFile(
+            {
+              ...prepared,
+              name,
+              ruleId: null,
             },
             1,
             true,
             f.execution?.fileId
           );
+          console.log(`Archivo ${f.id} guardado sin regla.`);
         }
+
         if (f.execution) {
           await validateLayout(f.execution.fileId);
+          console.log(`Archivo ${f.id} validado correctamente.`);
         }
+
         await removeFile(f.id);
-      } catch (err) {
-        console.error("Error creando LayoutValues:", err);
+        console.log(`Archivo ${f.id} removido de la cola.`);
+      } catch (err: any) {
+        console.error(
+          "Error creando LayoutValues para archivo:",
+          f.id,
+          err?.message,
+          err?.stack
+        );
       }
     }
+
+    console.log("Procesamiento de todos los archivos finalizado.");
   };
 
   const handleSubmit = async () => {
