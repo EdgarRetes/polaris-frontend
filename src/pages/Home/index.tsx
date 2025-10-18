@@ -1,27 +1,18 @@
 import * as React from 'react';
 import { PrimaryColors, SecondaryColors } from "@/helpers/colors";
 import { PieChart } from '@mui/x-charts/PieChart';
-import { ChartsLabelCustomMarkProps } from '@mui/x-charts/ChartsLabel';
 import { BarChart } from '@mui/x-charts/BarChart';
 import { LineChart } from '@mui/x-charts/LineChart';
-import Stack from '@mui/material/Stack';
+import { ChartsLabelCustomMarkProps } from '@mui/x-charts/ChartsLabel';
 import { Gauge, gaugeClasses } from '@mui/x-charts/Gauge';
+import Stack from '@mui/material/Stack';
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import CardActions from '@mui/material/CardActions';
 import CardContent from '@mui/material/CardContent';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
-
-
-const bull = (
-  <Box
-    component="span"
-    sx={{ display: 'inline-block', mx: '2px', transform: 'scale(0.8)' }}
-  >
-    •
-  </Box>
-);
+import useStats from './hooks/useStats'; // Adjust path as needed
 
 function HTMLDiamond({ className, color }: ChartsLabelCustomMarkProps) {
   return (
@@ -76,7 +67,7 @@ function ChartCard({
 
 function CustomCardContent({ title, body }: { title: string; body: string }) {
   return (
-    <React.Fragment>
+    <>
       <CardContent sx={{ background: SecondaryColors.background, textAlign: 'center' }}>
         <Typography variant="h5" sx={{ color: SecondaryColors.dark_gray, fontWeight: 'bold', fontSize: 28, mb: 1 }}>
           {title}
@@ -98,19 +89,21 @@ function CustomCardContent({ title, body }: { title: string; body: string }) {
           Saber más
         </Button>
       </CardActions>
-    </React.Fragment>
+    </>
   );
 }
 
-const cardData = [
-  { title: 'Número de usuarios registrados', body: '8' },
-  { title: 'Número de archivos subidos en el mes', body: '32' },
-  { title: 'Número de empresas registradas', body: '17' },
-  { title: 'Cambios a reglas durante la última semana', body: '2' },
-  { title: 'Últimas notificaciones', body: '[Usuario] realizó un cambió a [regla]' },
-];
-
 export default function ChartsPage() {
+  const stats = useStats();
+
+  const cardData = [
+    { title: 'Número de usuarios registrados', body: stats.users?.toString() || "0" },
+    { title: 'Número de archivos subidos en el mes', body: stats.files?.toString() || "0" },
+    { title: 'Número de archivos históricos', body: stats.filesAllTime?.toString() || "0" },
+    { title: 'Cambios a reglas durante la última semana', body: stats.changes?.toString() || "0" },
+    { title: 'Últimas notificaciones', body: stats.notifications || "Sin notificaciones" },
+  ];
+
   return (
     <div
       style={{
@@ -123,79 +116,72 @@ export default function ChartsPage() {
         padding: '2rem'
       }}
     >
-      {/* Left side: charts and gauges */}
+      {/* Left side */}
       <div style={{ flex: 1 }}>
-        <h1 className="text-4xl font-bold mb-4 mt-4" style={{ color: SecondaryColors.dark_gray }}>Estadísticas</h1>
-        {/* First row: Bar and Pie */}
+        <h1 className="text-4xl font-bold mb-4 mt-4" style={{ color: SecondaryColors.dark_gray }}>
+          Estadísticas
+        </h1>
+
+        {/* Bar & Pie Charts */}
         <Stack direction={{ xs: 'column', md: 'row' }} spacing={{ xs: 1, md: 3 }}>
-          <ChartCard width={400} height={300}>
-            <h2 style={{ marginBottom: '0.5rem', color: SecondaryColors.dark_gray, fontWeight: 'bold' }}>Reglas creadas por mes</h2>
-            <BarChart
-              colors={[PrimaryColors.red, PrimaryColors.gray, SecondaryColors.dark_gray]}
-              xAxis={[{ data: ['Octubre', 'Noviembre', 'Diciembre'] }]}
-              series={[{ data: [4, 3, 5] }, { data: [1, 6, 3] }, { data: [2, 5, 6] }]}
-              height={220}
-              width={350}
-            />
-          </ChartCard>
-          <ChartCard width={350} height={250}>
-            <h2 style={{ marginBottom: '0.5rem', color: SecondaryColors.dark_gray, fontWeight: 'bold' }}>Estatus de reglas</h2>
-            <PieChart
-              series={[
-                {
-                  data: [
-                    { color: PrimaryColors.gray, value: 10, label: 'En proceso', labelMarkType: 'circle' },
-                    { color: SecondaryColors.dark_gray, value: 15, label: 'Fallida', labelMarkType: HTMLDiamond },
-                    { color: PrimaryColors.red, value: 20, label: 'Exitosa', labelMarkType: SVGStar },
-                  ],
-                },
-              ]}
-              width={200}
-              height={200}
-            />
-          </ChartCard>
+          {stats.rulesPerMonth.length > 0 && (
+            <ChartCard width={400} height={300}>
+              <h2 style={{ marginBottom: '0.5rem', color: SecondaryColors.dark_gray, fontWeight: 'bold' }}>
+                Reglas creadas por mes
+              </h2>
+              <BarChart
+                xAxis={[{ data: stats.rulesPerMonth.map(m => m.month) }]}
+                series={[{ data: stats.rulesPerMonth.map(m => m.count) }]}
+                width={350}
+                height={220}
+                colors={[PrimaryColors.red]}
+              />
+            </ChartCard>
+          )}
+
+          {stats.ruleStatus.length > 0 && (
+            <ChartCard width={350} height={250}>
+              <h2 style={{ marginBottom: '0.5rem', color: SecondaryColors.dark_gray, fontWeight: 'bold' }}>
+                Estatus de reglas
+              </h2>
+              <PieChart
+                series={[
+                  {
+                    data: stats.ruleStatus.map(item => {
+                      let labelMarkType: any = 'circle';
+                      if (item.label === 'Fallida') labelMarkType = HTMLDiamond;
+                      if (item.label === 'Exitosa') labelMarkType = SVGStar;
+                      return {
+                        label: item.label,
+                        value: item.value,
+                        color:
+                          item.label === 'Fallida'
+                            ? SecondaryColors.dark_gray
+                            : item.label === 'Exitosa'
+                            ? PrimaryColors.red
+                            : PrimaryColors.gray,
+                        labelMarkType,
+                      };
+                    }),
+                  },
+                ]}
+                width={200}
+                height={200}
+              />
+            </ChartCard>
+          )}
         </Stack>
-        {/* Second row: Line and another Pie */}
-        <Stack direction={{ xs: 'column', md: 'row' }} spacing={{ xs: 1, md: 3 }} style={{ marginTop: '2rem' }}>
-          <ChartCard width={400} height={300}>
-            <h2 style={{ marginBottom: '0.5rem', color: SecondaryColors.dark_gray, fontWeight: 'bold' }}>Usuarios en línea por día</h2>
-            <LineChart
-              xAxis={[{ data: [1, 2, 3, 4, 5, 6] }]}
-              series={[
-                {
-                  color: PrimaryColors.red,
-                  data: [2, 5, 2, 8, 1, 5],
-                },
-              ]}
-              height={220}
-              width={350}
-            />
-          </ChartCard>
-          <ChartCard width={350} height={250}>
-            <h2 style={{ marginBottom: '0.5rem', color: SecondaryColors.dark_gray, fontWeight: 'bold' }}>Pie Chart 2</h2>
-            <PieChart
-              series={[
-                {
-                  data: [
-                    { color: SecondaryColors.dark_gray, value: 8, label: 'A', labelMarkType: 'circle' },
-                    { color: PrimaryColors.gray, value: 12, label: 'B', labelMarkType: HTMLDiamond },
-                    { color: PrimaryColors.red, value: 30, label: 'C', labelMarkType: SVGStar },
-                  ],
-                },
-              ]}
-              width={200}
-              height={200}
-            />
-          </ChartCard>
-        </Stack>
-        {/* Gauges row */}
+
+        {/* Gauges */}
         <Stack direction={{ xs: 'column', md: 'row' }} spacing={{ xs: 1, md: 3 }} style={{ marginTop: '2rem' }}>
           <ChartCard width={188} height={170}>
-            <h2 style={{ marginBottom: '0.5rem', color: SecondaryColors.dark_gray, fontWeight: 'bold', textAlign: 'center' }}>Reglas creadas exitosamente (día)</h2>
+            <h2 style={{ marginBottom: '0.5rem', color: SecondaryColors.dark_gray, fontWeight: 'bold', textAlign: 'center' }}>
+              Reglas creadas exitosamente (día)
+            </h2>
             <Gauge
               width={120}
               height={120}
-              value={95}
+              value={stats.successDay ?? 0}
               sx={{
                 [`& .${gaugeClasses.valueArc}`]: {
                   fill: PrimaryColors.red,
@@ -204,11 +190,13 @@ export default function ChartsPage() {
             />
           </ChartCard>
           <ChartCard width={188} height={170}>
-            <h2 style={{ marginBottom: '0.5rem', color: SecondaryColors.dark_gray, fontWeight: 'bold', textAlign: 'center' }}>Reglas creadas exitosamente (mes)</h2>
+            <h2 style={{ marginBottom: '0.5rem', color: SecondaryColors.dark_gray, fontWeight: 'bold', textAlign: 'center' }}>
+              Reglas creadas exitosamente (mes)
+            </h2>
             <Gauge
               width={120}
               height={120}
-              value={70}
+              value={stats.successMonth ?? 0}
               sx={{
                 [`& .${gaugeClasses.valueArc}`]: {
                   fill: PrimaryColors.red,
@@ -218,7 +206,8 @@ export default function ChartsPage() {
           </ChartCard>
         </Stack>
       </div>
-      {/* Right side: five cards */}
+
+      {/* Right side cards */}
       <div
         style={{
           display: 'flex',
