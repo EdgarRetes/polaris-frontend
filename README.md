@@ -83,7 +83,7 @@ El flujo de login y registro funciona de la siguiente manera:
 
 La aplicación usa un **sidebar** con los siguientes módulos:
 
--   **Inicio** → `/home`
+-   **Inicio** → `/`
 -   **Archivos** → `/file-executions`
 -   **Reglas de Negocio** → `/business-rules`
 -   **Usuarios** → `/users`
