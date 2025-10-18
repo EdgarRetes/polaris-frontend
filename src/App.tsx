@@ -53,7 +53,7 @@ function App() {
           element={
             <ProtectedRoute>
               <MainLayout>
-                <BusinessRules />
+                <Home />
               </MainLayout>
             </ProtectedRoute>
           }
