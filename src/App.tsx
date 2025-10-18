@@ -6,6 +6,7 @@ import LoginForm from "./components/LoginForm";
 import RegisterForm from "./components/RegisterForm";
 import { useState } from "react";
 
+import Home from "./pages/Home";
 import BusinessRules from "./pages/BusinessRules";
 import RuleExecutions from "./pages/RuleExecutions";
 import UsersPage from "./pages/Users";
@@ -52,7 +53,7 @@ function App() {
           element={
             <ProtectedRoute>
               <MainLayout>
-                <BusinessRules />
+                <Home />
               </MainLayout>
             </ProtectedRoute>
           }
