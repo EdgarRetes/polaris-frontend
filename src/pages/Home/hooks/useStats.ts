@@ -21,6 +21,7 @@ export default function useStats(): Stats {
   useEffect(() => {
     async function fetchStats() {
       try {
+        console.log(API_URL);
         const res = await fetch(`${API_URL}/stats`);
         if (!res.ok) throw new Error("Failed to fetch stats");
         const data: Stats = await res.json(); // Type assertion here
