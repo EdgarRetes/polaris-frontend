@@ -31,6 +31,18 @@ export const NativeFileDetails: React.FC<NativeFileDetailsProps> = ({
   const [isChanged, setIsChanged] = useState(false);
   const [saving, setSaving] = useState(false);
 
+  // Rellena texto a la derecha
+  const padRight = (value: string, length: number, padChar = " ") =>
+    value.padEnd(length, padChar);
+
+  // Rellena número a la izquierda
+  const padLeft = (value: number | string, length: number, padChar = "0") =>
+    String(value).padStart(length, padChar);
+
+  // Formatear importes con 13 enteros + 2 decimales
+  const formatAmount = (value: number) =>
+    padLeft(Math.round(value * 100), 15, "0"); // multiplica por 100 para centavos
+
   // Inicializar los valores editables por fila
   useEffect(() => {
     if (layoutFields.length > 0 && layoutValues.length > 0) {
@@ -94,18 +106,77 @@ export const NativeFileDetails: React.FC<NativeFileDetailsProps> = ({
   const handleExportTXT = () => {
     if (!file) return;
 
-    let txt = `Archivo: ${file.name}\n\n`;
-    editedRows.forEach((row, idx) => {
-      txt += `Fila ${idx + 1}:\n`;
-      Object.entries(row.values).forEach(([key, value]) => {
-        txt += `  ${key}: ${value}\n`;
-      });
-      txt += "\n";
-    });
+    let txt = "";
 
+    // --- Encabezado (fila 1) ---
+    const header = editedRows[0]?.values || {};
+
+    txt += padRight("H", 1); // Tipo de Registro
+    txt += padRight("NE", 2); // Clave de Servicio
+    const emisora = (file.name?.replace(/\..+$/, "") ?? "").slice(0, 5);
+    txt += padRight(emisora, 5, " "); // 5 caracteres exactos
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, "0");
+    const dd = String(today.getDate()).padStart(2, "0");
+    const currentDate = `${yyyy}${mm}${dd}`; // AAAAMMDD
+
+    txt += padLeft(currentDate, 8, "0"); // Fecha de Proceso
+    txt += padLeft("01", 2, "0"); // Consecutivo
+    txt += padLeft(editedRows.length - 1, 6, "0"); // Total registros detalle
+
+    // Total de importes de detalle
+    const detailRows = editedRows.filter((r) => r.row > 0);
+    const totalAmount = detailRows.reduce((sum, r) => {
+      const value = r.values["paymentAmount"]?.trim() || "0";
+      const num = parseFloat(value);
+      return sum + (isNaN(num) ? 0 : num);
+    }, 0);
+    txt += formatAmount(totalAmount); // Importe Total de Registros Enviados
+
+    txt += padLeft("0", 6, "0"); // Total ALTAS
+    txt += formatAmount(0); // Importe ALTAS
+    txt += padLeft("0", 6, "0"); // Total BAJAS
+    txt += formatAmount(0); // Importe BAJAS
+    txt += padLeft("0", 6, "0"); // Total cuentas a verificar
+    txt += padRight("0", 1); // Tipo de Pago
+    txt += padRight("", 4); // CR Chequera vacío
+    txt += padRight(currentDate, 8); // Fecha Adelanto Fin
+    txt += padRight("0", 10); // Cuenta Cargo
+    txt += padRight("", 59); // Filler
+    txt += "\n";
+
+    // --- Detalle ---
+    for (let i = 1; i < editedRows.length; i++) {
+      const row = editedRows[i];
+      const v = row.values;
+
+      txt += padRight("D", 1); // Tipo de registro
+      txt += padLeft(
+        v["applicationDate"]?.replace(/-/g, "") || currentDate,
+        8,
+        "0"
+      ); // Fecha de Aplicación
+      txt += padRight(v["idCode"] || "", 10); // Número de empleado
+      txt += padRight(v["reference"] || "", 40); // Referencia del servicio
+      txt += padRight(v["paymentDescription"] || "", 40); // Leyenda ordenante
+      txt += formatAmount(parseFloat(v["paymentAmount"] || "0")); // Importe 13+2 decimales
+      txt += padLeft(v["originAccount"] || "0", 3, "0"); // Banco Receptor
+      txt += padLeft("01", 2, "0"); // Tipo de cuenta
+      txt += padRight(v["destinationAccount"] || "", 18, " "); // Cuenta destino
+      txt += padLeft("0", 1, "0"); // Tipo de Movimiento
+      txt += padRight("0", 1, "0"); // Acción
+      txt += padLeft(Math.round(parseFloat(v["iva"] || "0") * 100), 8, "0"); // IVA
+      txt += padRight("", 18); // Filler
+      txt += "\n";
+    }
+
+    // Descargar archivo
     const blob = new Blob([txt], { type: "text/plain" });
+    const fileName = file.name
+      ? `${file.name.replace(/\..+$/, "")}.txt`
+      : "archivo_default.txt";
     const link = document.createElement("a");
-    const fileName = file.name ? `${file.name}.txt` : "archivo_default.txt";
     link.href = URL.createObjectURL(blob);
     link.download = fileName;
     link.click();
@@ -212,7 +283,10 @@ export const NativeFileDetails: React.FC<NativeFileDetailsProps> = ({
       </div>
 
       {/* --- Campos dinámicos editables por fila --- */}
-      <div className="space-y-4 max-h-80 overflow-auto mt-4" style={{ background: SecondaryColors.background_3 }}>
+      <div
+        className="space-y-4 max-h-80 overflow-auto mt-4"
+        style={{ background: SecondaryColors.background_3 }}
+      >
         {editedRows.map((row, rowIndex) => (
           <div key={row.row} className="p-2 border border-gray-200 rounded">
             <p className="font-semibold mb-2">Fila {rowIndex + 1}:</p>
@@ -228,7 +302,10 @@ export const NativeFileDetails: React.FC<NativeFileDetailsProps> = ({
                         const copy = [...prev];
                         copy[rowIndex] = {
                           ...copy[rowIndex],
-                          values: { ...copy[rowIndex].values, [field.name]: newValue },
+                          values: {
+                            ...copy[rowIndex].values,
+                            [field.name]: newValue,
+                          },
                         };
                         return copy;
                       });

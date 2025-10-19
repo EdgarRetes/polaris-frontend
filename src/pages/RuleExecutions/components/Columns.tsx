@@ -27,7 +27,7 @@ export const columns: ColumnDef<RuleExecutionExtended>[] = [
   },
   {
     id: "ruleName",
-    header: "Rule",
+    header: "Regla",
     accessorFn: (row) => row.rule?.name?.trim() || `NA`,
   },
   {

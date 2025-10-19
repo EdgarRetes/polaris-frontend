@@ -13,6 +13,8 @@ import UsersPage from "./pages/Users";
 import AuditLogs from "./pages/AuditLogs";
 import ProtectedRoute from "./components/ProtectedRoute";
 
+import './App.css';
+
 function App() {
   const [isLogin, setIsLogin] = useState(true);
 
