@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import type { Stats } from "@/types/Stats";
+const API_URL = import.meta.env.VITE_API_URL;
 
 const initialStats: Stats = {
   users: 0,
@@ -20,7 +21,7 @@ export default function useStats(): Stats {
   useEffect(() => {
     async function fetchStats() {
       try {
-        const res = await fetch("http://localhost:3000/api/stats");
+        const res = await fetch(`${API_URL}/stats`);
         if (!res.ok) throw new Error("Failed to fetch stats");
         const data: Stats = await res.json(); // Type assertion here
         setStats(data);
