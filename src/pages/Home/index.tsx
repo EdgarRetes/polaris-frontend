@@ -127,7 +127,7 @@ export default function ChartsPage() {
           {stats.rulesPerMonth.length > 0 && (
             <ChartCard width={400} height={300}>
               <h2 style={{ marginBottom: '0.5rem', color: SecondaryColors.dark_gray, fontWeight: 'bold' }}>
-                Reglas creadas por mes
+                Archivos procesados por mes
               </h2>
               <BarChart
                 xAxis={[{ data: stats.rulesPerMonth.map(m => m.month) }]}
@@ -142,7 +142,7 @@ export default function ChartsPage() {
           {stats.ruleStatus.length > 0 && (
             <ChartCard width={350} height={250}>
               <h2 style={{ marginBottom: '0.5rem', color: SecondaryColors.dark_gray, fontWeight: 'bold' }}>
-                Estatus de reglas
+                Estatus de archivos procesados
               </h2>
               <PieChart
                 series={[
@@ -176,7 +176,7 @@ export default function ChartsPage() {
         <Stack direction={{ xs: 'column', md: 'row' }} spacing={{ xs: 1, md: 3 }} style={{ marginTop: '2rem' }}>
           <ChartCard width={188} height={170}>
             <h2 style={{ marginBottom: '0.5rem', color: SecondaryColors.dark_gray, fontWeight: 'bold', textAlign: 'center' }}>
-              Reglas creadas exitosamente (día)
+              Archivos procesados exitosamente (día)
             </h2>
             <Gauge
               width={120}
@@ -191,7 +191,7 @@ export default function ChartsPage() {
           </ChartCard>
           <ChartCard width={188} height={170}>
             <h2 style={{ marginBottom: '0.5rem', color: SecondaryColors.dark_gray, fontWeight: 'bold', textAlign: 'center' }}>
-              Reglas creadas exitosamente (mes)
+              Archivos procesados exitosamente (mes)
             </h2>
             <Gauge
               width={120}
